@@ -25,7 +25,7 @@ func GetPage(baseURL, title string) (string, error) {
 func buildWikiURL(baseURL, title string) (string, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse URL: %w", err)
+		return "", fmt.Errorf("failed to parse URL %q: %w", baseURL, err)
 	}
 	q := u.Query()
 	q.Set("action", "query")
@@ -39,12 +39,12 @@ func buildWikiURL(baseURL, title string) (string, error) {
 func makeWikiRequest(requestURL string) ([]byte, error) {
 	resp, err := http.Get(requestURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to make request %q: %w", requestURL, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API request failed with status: %d", resp.StatusCode)
+		return nil, fmt.Errorf("API request %q failed with status: %d", requestURL, resp.StatusCode)
 	}
 	return io.ReadAll(resp.Body)
 }
@@ -59,7 +59,7 @@ func parseWikiResponse(body []byte) (string, error) {
 	}
 
 	if err := json.Unmarshal(body, &result); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to unmarshal wiki response: %w", err)
 	}
 
 	for _, page := range result.Query.Pages {

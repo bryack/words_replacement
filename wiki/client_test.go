@@ -25,8 +25,7 @@ func makeBasicServer(t *testing.T) *httptest.Server {
 			t.Fatal("expected format=json")
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"query":{"pages":{"123":{"extract":"Go is a programming language"}}}}`))
+		writeJSONResponse(w, `{"query":{"pages":{"123":{"extract":"Go is a programming language"}}}}`)
 	}))
 }
 
@@ -48,9 +47,8 @@ func makeServerWithEmptyPages(t *testing.T) *httptest.Server {
 		if query.Get("titles") != "NonExistent" {
 			t.Fatal("expected titles=NonExistent")
 		}
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"query":{"pages":{}}}`))
+		writeJSONResponse(w, `{"query":{"pages":{}}}`)
 	}))
 }
 
@@ -61,8 +59,7 @@ func makeServerWithSpecialChars(t *testing.T) *httptest.Server {
 			t.Errorf("Server received wrong title: got %q, want 'C++'", gotTitle)
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"query":{"pages":{"123":{"extract":"C++ is a programming language"}}}}`))
+		writeJSONResponse(w, `{"query":{"pages":{"123":{"extract":"C++ is a programming language"}}}}`)
 	}))
 }
 
@@ -132,4 +129,9 @@ func TestWikiClient(t *testing.T) {
 			t.Errorf("want %q, but got %q", want, extract)
 		}
 	})
+}
+
+func writeJSONResponse(w http.ResponseWriter, jsonData string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(jsonData))
 }
