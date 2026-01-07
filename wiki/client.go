@@ -14,38 +14,12 @@ func GetPage(baseURL, title string) (string, error) {
 		return "", err
 	}
 
-	resp, err := http.Get(requestURL)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("API request failed with status: %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
+	body, err := makeWikiRequest(requestURL)
 	if err != nil {
 		return "", err
 	}
 
-	var result struct {
-		Query struct {
-			Pages map[string]struct {
-				Extract string `json:"extract"`
-			} `json:"pages"`
-		} `json:"query"`
-	}
-
-	if err := json.Unmarshal(body, &result); err != nil {
-		return "", err
-	}
-
-	for _, page := range result.Query.Pages {
-		return page.Extract, nil
-	}
-
-	return "", fmt.Errorf("error: page not found")
+	return parseWikiResponse(body)
 }
 
 func buildWikiURL(baseURL, title string) (string, error) {
@@ -68,5 +42,28 @@ func makeWikiRequest(requestURL string) ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	return resp, nil
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API request failed with status: %d", resp.StatusCode)
+	}
+	return io.ReadAll(resp.Body)
+}
+
+func parseWikiResponse(body []byte) (string, error) {
+	var result struct {
+		Query struct {
+			Pages map[string]struct {
+				Extract string `json:"extract"`
+			} `json:"pages"`
+		} `json:"query"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return "", err
+	}
+
+	for _, page := range result.Query.Pages {
+		return page.Extract, nil
+	}
+	return "", fmt.Errorf("error: page not found")
 }
