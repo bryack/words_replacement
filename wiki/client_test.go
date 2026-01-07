@@ -74,8 +74,11 @@ func TestWikiClient(t *testing.T) {
 		svr := makeBasicServer(t)
 		defer svr.Close()
 
-		client := &http.Client{}
-		extract, err := GetPage(client, svr.URL, "Go")
+		wc, err := NewWikiClient(svr.URL, &http.Client{})
+		if err != nil {
+			t.Fatalf("Failed to create WikiClient: %v", err)
+		}
+		extract, err := wc.GetPage("Go")
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -89,8 +92,11 @@ func TestWikiClient(t *testing.T) {
 		svr := makeServerWithError(t)
 		defer svr.Close()
 
-		client := &http.Client{}
-		extract, err := GetPage(client, svr.URL, "Go")
+		wc, err := NewWikiClient(svr.URL, &http.Client{})
+		if err != nil {
+			t.Fatalf("Failed to create WikiClient: %v", err)
+		}
+		extract, err := wc.GetPage("Go")
 
 		if err == nil {
 			t.Fatal("Expected an error when server returns 403, but got nil")
@@ -108,8 +114,11 @@ func TestWikiClient(t *testing.T) {
 		svr := makeServerWithEmptyPages(t)
 		defer svr.Close()
 
-		client := &http.Client{}
-		extract, err := GetPage(client, svr.URL, "NonExistent")
+		wc, err := NewWikiClient(svr.URL, &http.Client{})
+		if err != nil {
+			t.Fatalf("Failed to create WikiClient: %v", err)
+		}
+		extract, err := wc.GetPage("NonExistent")
 
 		if err == nil {
 			t.Fatal("Expected an error when pages map is empty, but got nil")
@@ -128,8 +137,11 @@ func TestWikiClient(t *testing.T) {
 		svr := makeServerWithSpecialChars(t)
 		defer svr.Close()
 
-		client := &http.Client{}
-		extract, err := GetPage(client, svr.URL, "C++")
+		wc, err := NewWikiClient(svr.URL, &http.Client{})
+		if err != nil {
+			t.Fatalf("Failed to create WikiClient: %v", err)
+		}
+		extract, err := wc.GetPage("C++")
 
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
@@ -169,7 +181,11 @@ func TestGetPage_UsesInjectedClient(t *testing.T) {
 		spy := &spyRoundTripper{}
 		client := &http.Client{Transport: spy}
 
-		_, err := GetPage(client, "http://example.com", "Go")
+		wc, err := NewWikiClient("http://example.com", client)
+		if err != nil {
+			t.Fatalf("Failed to create WikiClient: %v", err)
+		}
+		_, err = wc.GetPage("Go")
 		if err != nil {
 			t.Fatal(err)
 		}
