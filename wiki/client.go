@@ -8,13 +8,13 @@ import (
 	"net/url"
 )
 
-func GetPage(baseURL, title string) (string, error) {
+func GetPage(client *http.Client, baseURL, title string) (string, error) {
 	requestURL, err := buildWikiURL(baseURL, title)
 	if err != nil {
 		return "", err
 	}
 
-	body, err := makeWikiRequest(requestURL)
+	body, err := makeWikiRequest(client, requestURL)
 	if err != nil {
 		return "", err
 	}
@@ -36,8 +36,8 @@ func buildWikiURL(baseURL, title string) (string, error) {
 	return u.String(), nil
 }
 
-func makeWikiRequest(requestURL string) ([]byte, error) {
-	resp, err := http.Get(requestURL)
+func makeWikiRequest(client *http.Client, requestURL string) ([]byte, error) {
+	resp, err := client.Get(requestURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make request %q: %w", requestURL, err)
 	}

@@ -1,6 +1,8 @@
 package wiki
 
 import (
+	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -30,6 +32,7 @@ func makeBasicServer(t *testing.T) *httptest.Server {
 }
 
 func makeServerWithError(t *testing.T) *httptest.Server {
+	t.Helper()
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Проверяем, что запрос корректный
 		query := r.URL.Query()
@@ -41,6 +44,7 @@ func makeServerWithError(t *testing.T) *httptest.Server {
 }
 
 func makeServerWithEmptyPages(t *testing.T) *httptest.Server {
+	t.Helper()
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Проверяем, что запрос корректный
 		query := r.URL.Query()
@@ -53,6 +57,7 @@ func makeServerWithEmptyPages(t *testing.T) *httptest.Server {
 }
 
 func makeServerWithSpecialChars(t *testing.T) *httptest.Server {
+	t.Helper()
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotTitle := r.URL.Query().Get("titles")
 		if gotTitle != "C++" {
@@ -68,7 +73,9 @@ func TestWikiClient(t *testing.T) {
 	t.Run("client can make basic request", func(t *testing.T) {
 		svr := makeBasicServer(t)
 		defer svr.Close()
-		extract, err := GetPage(svr.URL, "Go")
+
+		client := &http.Client{}
+		extract, err := GetPage(client, svr.URL, "Go")
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -81,7 +88,9 @@ func TestWikiClient(t *testing.T) {
 	t.Run("handle non 200 status", func(t *testing.T) {
 		svr := makeServerWithError(t)
 		defer svr.Close()
-		extract, err := GetPage(svr.URL, "Go")
+
+		client := &http.Client{}
+		extract, err := GetPage(client, svr.URL, "Go")
 
 		if err == nil {
 			t.Fatal("Expected an error when server returns 403, but got nil")
@@ -99,7 +108,8 @@ func TestWikiClient(t *testing.T) {
 		svr := makeServerWithEmptyPages(t)
 		defer svr.Close()
 
-		extract, err := GetPage(svr.URL, "NonExistent")
+		client := &http.Client{}
+		extract, err := GetPage(client, svr.URL, "NonExistent")
 
 		if err == nil {
 			t.Fatal("Expected an error when pages map is empty, but got nil")
@@ -118,7 +128,8 @@ func TestWikiClient(t *testing.T) {
 		svr := makeServerWithSpecialChars(t)
 		defer svr.Close()
 
-		extract, err := GetPage(svr.URL, "C++")
+		client := &http.Client{}
+		extract, err := GetPage(client, svr.URL, "C++")
 
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
@@ -134,4 +145,37 @@ func TestWikiClient(t *testing.T) {
 func writeJSONResponse(w http.ResponseWriter, jsonData string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(jsonData))
+}
+
+type spyRoundTripper struct {
+	called bool
+}
+
+func (s *spyRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	s.called = true
+	if req.URL.Query().Get("titles") != "Go" {
+		return nil, fmt.Errorf("unexpected title")
+	}
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Body:       io.NopCloser(strings.NewReader(`{"query":{"pages":{"1":{"extract":"Go"}}}}`)),
+		Header:     make(http.Header),
+	}, nil
+}
+
+func TestGetPage_UsesInjectedClient(t *testing.T) {
+
+	t.Run("GetPage should use the provided http.Client", func(t *testing.T) {
+		spy := &spyRoundTripper{}
+		client := &http.Client{Transport: spy}
+
+		_, err := GetPage(client, "http://example.com", "Go")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !spy.called {
+			t.Fatal("expected provided http.Client to be used")
+		}
+	})
 }
