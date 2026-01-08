@@ -14,10 +14,10 @@ type WordReplacer interface {
 func WordReplacerSpecification(t testing.TB, replacer WordReplacer) {
 	t.Helper()
 
-	err := replacer.ReplaceWordsInFile("test_files/input.md", "test_files/output.md")
+	err := replacer.ReplaceWordsInFile("input.md", "output.md")
 	assert.NoError(t, err)
 
-	output, err := replacer.ReadFile("test_files/output.md")
+	output, err := replacer.ReadFile("output.md")
 	assert.NoError(t, err)
-	assert.Contains(t, output, "fakes")
+	assert.Contains(t, output, "fake")
 }

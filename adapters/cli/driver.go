@@ -1,6 +1,10 @@
 package cli
 
-import "fmt"
+import (
+	"os"
+
+	"github.com/bryack/words/internal/replacer"
+)
 
 type Driver struct {
 	Input  string
@@ -8,9 +12,19 @@ type Driver struct {
 }
 
 func (d Driver) ReplaceWordsInFile(inputPath, outputPath string) error {
-	return fmt.Errorf("not implemented")
+	fsys := os.DirFS(".")
+	data, err := replacer.ReadAndReplace(fsys, inputPath)
+	if err != nil {
+		return err
+	}
+
+	return replacer.WriteFile(outputPath, data)
 }
 
 func (d Driver) ReadFile(path string) (string, error) {
-	return "", nil
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }

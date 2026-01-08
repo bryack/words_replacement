@@ -1,8 +1,7 @@
-package main
+package replacer
 
 import (
 	"io/fs"
-	"log"
 	"os"
 	"regexp"
 )
@@ -45,14 +44,4 @@ func WriteFile(filename, data string) error {
 		return err
 	}
 	return nil
-}
-
-func main() {
-	fsys := os.DirFS("/home/bryack/Documents/Obsidian/bryack/014_Go/to_do_list/contracts")
-	data, err := ReadAndReplace(fsys, "Task.md")
-	if err != nil {
-		log.Fatal(err)
-	}
-	filename := "/home/bryack/Documents/Obsidian/bryack/014_Go/to_do_list/contracts/out.md"
-	err = WriteFile(filename, data)
 }
