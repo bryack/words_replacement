@@ -1,6 +1,7 @@
 package replacer
 
 import (
+	"path/filepath"
 	"testing"
 	"testing/fstest"
 )
@@ -67,8 +68,9 @@ func TestReadAndReplace(t *testing.T) {
 func TestWriteFile(t *testing.T) {
 
 	t.Run("write", func(t *testing.T) {
+		tempDir := t.TempDir()
+		filename := filepath.Join(tempDir, "hello.md")
 		data := "**Требования к тестам:** HTTP-тесты используют ту же подделку, что и тесты на уровне сервисов"
-		filename := "./hello.md"
 
 		err := WriteFile(filename, data)
 

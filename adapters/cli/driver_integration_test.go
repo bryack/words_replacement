@@ -1,11 +1,10 @@
-package main_test
+package cli
 
 import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bryack/words/adapters/cli"
-	"github.com/bryack/words/specifications"
+	"github.com/bryack/words/contracts"
 )
 
 func TestWordReplacementSpecification(t *testing.T) {
@@ -15,11 +14,11 @@ func TestWordReplacementSpecification(t *testing.T) {
 		input := filepath.Join(tempDir, "input.md")
 		output := filepath.Join(tempDir, "output.md")
 
-		driver := &cli.Driver{
+		driver := &Driver{
 			Input:  input,
 			Output: output,
 		}
 
-		specifications.WordReplacerSpecification(t, driver)
+		contracts.WordReplacerSpecification(t, driver)
 	})
 }
