@@ -6,12 +6,12 @@ import (
 	"github.com/alecthomas/assert/v2"
 )
 
-type WordReplacer interface {
+type WordReplacerCLI interface {
 	ReplaceWordsInFile(inputPath, outputPath string) error
 	ReadFile(path string) (string, error)
 }
 
-func WordReplacerSpecification(t testing.TB, replacer WordReplacer) {
+func WordReplacerCLIContract(t testing.TB, replacer WordReplacerCLI) {
 	t.Helper()
 
 	err := replacer.ReplaceWordsInFile("input.md", "output.md")

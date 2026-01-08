@@ -7,7 +7,7 @@ import (
 	"github.com/bryack/words/contracts"
 )
 
-func TestWordReplacementSpecification(t *testing.T) {
+func TestWordReplacerCLIContract(t *testing.T) {
 
 	t.Run("should replace words in a markdown file", func(t *testing.T) {
 		tempDir := t.TempDir()
@@ -19,6 +19,6 @@ func TestWordReplacementSpecification(t *testing.T) {
 			Output: output,
 		}
 
-		contracts.WordReplacerSpecification(t, driver)
+		contracts.WordReplacerCLIContract(t, driver)
 	})
 }
