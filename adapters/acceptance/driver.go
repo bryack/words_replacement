@@ -2,6 +2,8 @@ package acceptance
 
 import (
 	"bytes"
+	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -18,8 +20,12 @@ func (d *Driver) Replace(text, oldWord, newWord string) (string, error) {
 	var out bytes.Buffer
 	cmd.Stdout = &out
 
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
 	err := cmd.Run()
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "Go run Error: \n%q\n", stderr.String())
 		return "", err
 	}
 	return strings.TrimSpace(out.String()), nil

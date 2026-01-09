@@ -1,12 +1,29 @@
 package replacer
 
 import (
+	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"regexp"
 )
 
 var re = regexp.MustCompile(`(?i)(\P{L}|^)поддел(к[аиуе]|ко(й|ю)|ок|кам|ками|ках)(\P{L}|$)`)
+
+func Run(fsys fs.FS, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return fmt.Errorf("missing filename argument")
+	}
+	filename := args[0]
+
+	result, err := ReadAndReplace(fsys, filename)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprint(out, result)
+	return nil
+}
 
 func Replace(input string) string {
 	return re.ReplaceAllStringFunc(input, func(s string) string {
