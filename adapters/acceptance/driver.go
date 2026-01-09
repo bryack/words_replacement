@@ -1,28 +1,26 @@
 package acceptance
 
 import (
+	"bytes"
 	"os/exec"
+	"strings"
 )
 
 type Driver struct {
-	Input  string
-	Output string
+	BinaryPath string
 }
 
-func NewDriver(input, output string) *Driver {
+func (d *Driver) Replace(text, oldWord, newWord string) (string, error) {
+	cmd := exec.Command(d.BinaryPath, oldWord, newWord)
 
-	return &Driver{
-		Input:  input,
-		Output: output,
-	}
-}
+	cmd.Stdin = strings.NewReader(text)
 
-func (d *Driver) Run(args ...string) error {
-	cmd := exec.Command("go", "run", "./cmd/cli", d.Input, d.Output)
-	cmd.Dir = "../../"
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
 	err := cmd.Run()
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return strings.TrimSpace(out.String()), nil
 }

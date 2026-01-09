@@ -1,25 +1,5 @@
 package main
 
-import (
-	"fmt"
-	"log"
-	"os"
-
-	"github.com/bryack/words/adapters/acceptance"
-)
-
 func main() {
-	if len(os.Args) < 3 {
-		log.Fatal("path of files is required")
-	}
 
-	driver := acceptance.Driver{
-		Input:  os.Args[1],
-		Output: os.Args[2],
-	}
-
-	if err := driver.Run(driver.Input, driver.Output); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-
-	}
 }

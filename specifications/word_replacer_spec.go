@@ -7,12 +7,16 @@ import (
 )
 
 type WordReplacer interface {
-	Run(args ...string) error
+	Replace(text, oldWord, newWord string) (string, error)
 }
 
 func WordReplacerSpecification(t testing.TB, replacer WordReplacer) {
-	t.Helper()
+	text := "Требования к тестам: HTTP-тесты используют ту же подделку"
+	oldWord := "подделку"
+	newWord := "fake"
 
-	err := replacer.Run("input.md", "output.md")
+	got, err := replacer.Replace(text, oldWord, newWord)
+
 	assert.NoError(t, err)
+	assert.Equal(t, "Требования к тестам: HTTP-тесты используют ту же fake", got)
 }
