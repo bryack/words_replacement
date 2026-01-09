@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/bryack/words/adapters/cli"
+	"github.com/bryack/words/adapters/acceptance"
 )
 
 func main() {
@@ -13,13 +13,13 @@ func main() {
 		log.Fatal("path of files is required")
 	}
 
-	driver := cli.Driver{
+	driver := acceptance.Driver{
 		Input:  os.Args[1],
 		Output: os.Args[2],
 	}
 
-	if err := driver.ReplaceWordsInFile(driver.Input, driver.Output); err != nil {
+	if err := driver.Run(driver.Input, driver.Output); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+
 	}
 }
