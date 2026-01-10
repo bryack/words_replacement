@@ -10,16 +10,17 @@ import (
 
 var re = regexp.MustCompile(`(?i)(\P{L}|^)поддел(к[аиуе]|ко(й|ю)|ок|кам|ками|ках)(\P{L}|$)`)
 
-func Run(fsys fs.FS, args []string, out io.Writer) error {
-	if len(args) < 1 {
-		return fmt.Errorf("missing filename argument")
-	}
-	filename := args[0]
+func Run(in io.Reader, out io.Writer, args []string) error {
+	var content []byte
+	var err error
 
-	result, err := ReadAndReplace(fsys, filename)
+	content, err = io.ReadAll(in)
+
 	if err != nil {
 		return err
 	}
+
+	result := Replace(string(content))
 
 	fmt.Fprint(out, result)
 	return nil

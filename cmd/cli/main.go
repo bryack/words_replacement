@@ -8,8 +8,7 @@ import (
 )
 
 func main() {
-	fsys := os.DirFS(".")
-	if err := replacer.Run(fsys, os.Args[1:], os.Stdout); err != nil {
+	if err := replacer.Run(os.Stdin, os.Stdout, os.Args[1:]); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
