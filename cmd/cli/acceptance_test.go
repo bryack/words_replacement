@@ -58,8 +58,8 @@ func buildBinaryPath() (string, error) {
 	binName := "temp-binary"
 	binPath := filepath.Join(tempDir, binName)
 
-	build := exec.Command("go", "build", "-o", binPath, ".")
-
+	build := exec.Command("go", "build", "-cover", "-o", binPath, ".")
+	build.Env = append(os.Environ(), "GOCOVERDIR="+os.Getenv("GOCOVERDIR"))
 	var stderr bytes.Buffer
 	build.Stderr = &stderr
 
