@@ -9,11 +9,13 @@ import (
 type Driver struct {
 	Input  string
 	Output string
+	Old    string
+	New    string
 }
 
 func (d Driver) ReplaceWordsInFile(inputPath, outputPath string) error {
 	fsys := os.DirFS(".")
-	data, err := replacer.ReadAndReplace(fsys, inputPath)
+	data, err := replacer.ReadAndReplace(fsys, inputPath, d.Old, d.New)
 	if err != nil {
 		return err
 	}

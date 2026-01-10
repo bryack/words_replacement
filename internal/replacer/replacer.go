@@ -5,12 +5,33 @@ import (
 	"io"
 	"io/fs"
 	"os"
-	"regexp"
+	"strings"
+
+	"github.com/bryack/words/specifications"
 )
 
-var re = regexp.MustCompile(`(?i)(\P{L}|^)поддел(к[аиуе]|ко(й|ю)|ок|кам|ками|ках)(\P{L}|$)`)
+type FormsProvider interface {
+	GetForms(word string) (singular, plural []string, err error)
+}
 
-func Run(in io.Reader, out io.Writer, args []string) error {
+type Replacer struct {
+	provider FormsProvider
+}
+
+func NewReplacer(fp FormsProvider) *Replacer {
+	return &Replacer{provider: fp}
+}
+
+type ProductionStubProvider struct{}
+
+func (p ProductionStubProvider) GetForms(word string) (singular, plural []string, err error) {
+	if word == "подделка" {
+		return []string{"подделка", "подделку"}, []string{"подделки"}, nil
+	}
+	return nil, nil, fmt.Errorf("word not supported in skeleton")
+}
+
+func Run(r specifications.WordReplacer, in io.Reader, out io.Writer, args []string) error {
 	var content []byte
 	var err error
 
@@ -20,38 +41,43 @@ func Run(in io.Reader, out io.Writer, args []string) error {
 		return err
 	}
 
-	result := Replace(string(content))
+	result, err := r.Replace(string(content), args[0], args[1])
+	if err != nil {
+		return err
+	}
 
 	fmt.Fprint(out, result)
 	return nil
 }
 
-func Replace(input string) string {
-	return re.ReplaceAllStringFunc(input, func(s string) string {
-		groups := re.FindStringSubmatch(s)
+func (r *Replacer) Replace(input, old, new string) (string, error) {
+	sing, plur, err := r.provider.GetForms(old)
+	if err != nil {
+		return "", fmt.Errorf("failed to get forms of %s: %w", old, err)
+	}
+	result := input
 
-		if len(groups) < 5 {
-			return s
-		}
-		prefix := groups[1]
-		ending := groups[2]
-		boundary := groups[4]
+	for _, form := range plur {
+		result = strings.ReplaceAll(result, form, new+"s")
+	}
 
-		replacement := "fake"
-		if ending == "ок" || ending == "ками" || ending == "ках" || ending == "ки" {
-			replacement = "fakes"
-		}
-		return prefix + replacement + boundary
-	})
+	for _, form := range sing {
+		result = strings.ReplaceAll(result, form, new)
+	}
+	return result, err
 }
 
-func ReadAndReplace(fsys fs.FS, filename string) (string, error) {
+func ReadAndReplace(fsys fs.FS, filename, old, new string) (string, error) {
 	data, err := fs.ReadFile(fsys, filename)
 	if err != nil {
 		return "", err
 	}
-
-	repl := Replace(string(data))
+	provider := ProductionStubProvider{}
+	wordReplacer := NewReplacer(provider)
+	repl, err := wordReplacer.Replace(string(data), old, new)
+	if err != nil {
+		return "", err
+	}
 
 	return repl, nil
 }

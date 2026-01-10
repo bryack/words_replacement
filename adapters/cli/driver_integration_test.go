@@ -17,6 +17,8 @@ func TestWordReplacerCLIContract(t *testing.T) {
 		driver := &Driver{
 			Input:  input,
 			Output: output,
+			Old:    "подделка",
+			New:    "fake",
 		}
 
 		contracts.WordReplacerCLIContract(t, driver)

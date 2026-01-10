@@ -8,7 +8,10 @@ import (
 )
 
 func main() {
-	if err := replacer.Run(os.Stdin, os.Stdout, os.Args[1:]); err != nil {
+	provider := replacer.ProductionStubProvider{}
+	wordReplacer := replacer.NewReplacer(provider)
+
+	if err := replacer.Run(wordReplacer, os.Stdin, os.Stdout, os.Args[1:]); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
