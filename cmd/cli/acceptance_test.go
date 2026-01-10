@@ -14,13 +14,13 @@ import (
 )
 
 var (
-	buldOnce   sync.Once
+	buildOnce  sync.Once
 	binaryPath string
 	buildError error
 )
 
 func ensureBinary() (string, error) {
-	buldOnce.Do(func() {
+	buildOnce.Do(func() {
 		binPath, err := buildBinaryPath()
 		if err != nil {
 			buildError = err

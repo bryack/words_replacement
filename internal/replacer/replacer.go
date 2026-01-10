@@ -2,12 +2,9 @@ package replacer
 
 import (
 	"fmt"
-	"io"
 	"io/fs"
 	"os"
 	"strings"
-
-	"github.com/bryack/words/specifications"
 )
 
 type FormsProvider interface {
@@ -29,25 +26,6 @@ func (p ProductionStubProvider) GetForms(word string) (singular, plural []string
 		return []string{"подделка", "подделку"}, []string{"подделки"}, nil
 	}
 	return nil, nil, fmt.Errorf("word not supported in skeleton")
-}
-
-func Run(r specifications.WordReplacer, in io.Reader, out io.Writer, args []string) error {
-	var content []byte
-	var err error
-
-	content, err = io.ReadAll(in)
-
-	if err != nil {
-		return err
-	}
-
-	result, err := r.Replace(string(content), args[0], args[1])
-	if err != nil {
-		return err
-	}
-
-	fmt.Fprint(out, result)
-	return nil
 }
 
 func (r *Replacer) Replace(input, old, new string) (string, error) {
