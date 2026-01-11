@@ -8,6 +8,10 @@ import (
 	"github.com/bryack/words/internal/replacer"
 )
 
+const DefaultFilePermissions = 0644
+const SupportedWord = "подделка"
+const RootDir = "."
+
 type Driver struct {
 	Input  string
 	Output string
@@ -18,26 +22,31 @@ type Driver struct {
 type ProductionStubProvider struct{}
 
 func (p ProductionStubProvider) GetForms(word string) (singular, plural []string, err error) {
-	if word == "подделка" {
+	if word == SupportedWord {
 		return []string{"подделка", "подделку"}, []string{"подделки"}, nil
 	}
 	return nil, nil, fmt.Errorf("word not supported in skeleton")
 }
 
+func (d Driver) createReplacer() *replacer.Replacer {
+	provider := ProductionStubProvider{}
+	return replacer.NewReplacer(provider)
+}
+
 func (d Driver) ReplaceWordsInFile(inputPath, outputPath string) error {
-	fsys := os.DirFS(".")
+	fsys := os.DirFS(RootDir)
 	data, err := fs.ReadFile(fsys, inputPath)
 	if err != nil {
 		return fmt.Errorf("failed to read file %s: %w", inputPath, err)
 	}
-	provider := ProductionStubProvider{}
-	replacer := replacer.NewReplacer(provider)
+
+	replacer := d.createReplacer()
 	repl, err := replacer.Replace(string(data), d.Old, d.New)
 	if err != nil {
 		return err
 	}
 
-	return os.WriteFile(outputPath, []byte(repl), 0644)
+	return os.WriteFile(outputPath, []byte(repl), DefaultFilePermissions)
 }
 
 func (d Driver) ReadFile(path string) (string, error) {

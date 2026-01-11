@@ -7,6 +7,8 @@ import (
 	"github.com/bryack/words/specifications"
 )
 
+const RequiredArgs = 2
+
 type CLI struct {
 	in  io.Reader
 	out io.Writer
@@ -18,7 +20,7 @@ func NewCLI(in io.Reader, out io.Writer, r specifications.WordReplacer) *CLI {
 }
 
 func (c *CLI) Run(args []string) error {
-	if len(args) < 2 {
+	if len(args) < RequiredArgs {
 		return fmt.Errorf("usage: <old_word> <new_word>")
 	}
 
