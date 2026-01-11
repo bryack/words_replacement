@@ -47,9 +47,9 @@ func (wc *WikiClient) buildWikiURL(title string) (string, error) {
 		return "", fmt.Errorf("failed to parse URL %q: %w", wc.baseURL, err)
 	}
 	q := u.Query()
-	q.Set("action", "query")
-	q.Set("titles", title)
-	q.Set("prop", "extracts")
+	q.Set("action", "parse")
+	q.Set("page", title)
+	q.Set("prop", "wikitext")
 	q.Set("format", "json")
 	u.RawQuery = q.Encode()
 	return u.String(), nil
@@ -70,19 +70,20 @@ func (wc *WikiClient) makeWikiRequest(requestURL string) ([]byte, error) {
 
 func parseWikiResponse(body []byte) (string, error) {
 	var result struct {
-		Query struct {
-			Pages map[string]struct {
-				Extract string `json:"extract"`
-			} `json:"pages"`
-		} `json:"query"`
+		Parse struct {
+			Title    string `json:"title"`
+			Wikitext struct {
+				Content string `json:"*"`
+			} `json:"wikitext"`
+		} `json:"parse"`
 	}
 
 	if err := json.Unmarshal(body, &result); err != nil {
 		return "", fmt.Errorf("failed to unmarshal wiki response: %w", err)
 	}
 
-	for _, page := range result.Query.Pages {
-		return page.Extract, nil
+	if result.Parse.Wikitext.Content == "" {
+		return "", fmt.Errorf("no wikitext found for page")
 	}
-	return "", fmt.Errorf("error: page not found")
+	return result.Parse.Wikitext.Content, nil
 }

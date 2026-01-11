@@ -14,20 +14,20 @@ func makeBasicServer(t *testing.T) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Проверяем, что запрос корректный
 		query := r.URL.Query()
-		if query.Get("action") != "query" {
-			t.Fatal("expected action=query")
+		if query.Get("action") != "parse" {
+			t.Fatal("expected action=parse")
 		}
-		if query.Get("titles") != "Go" {
-			t.Fatal("expected titles=Go")
+		if query.Get("page") != "подделка" {
+			t.Fatal("expected page=подделка")
 		}
-		if query.Get("prop") != "extracts" {
-			t.Fatal("expected prop=extracts")
+		if query.Get("prop") != "wikitext" {
+			t.Fatal("expected prop=wikitext")
 		}
 		if query.Get("format") != "json" {
 			t.Fatal("expected format=json")
 		}
 
-		writeJSONResponse(w, `{"query":{"pages":{"123":{"extract":"Go is a programming language"}}}}`)
+		writeJSONResponse(w, `{"parse": {"title": "подделка", "wikitext": {"*": "{{ru-noun|подде́лка|f|подде́лки|подде́лок}}\n\n# [[подделка]]..."}}}`)
 	}))
 }
 
@@ -36,8 +36,8 @@ func makeServerWithError(t *testing.T) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Проверяем, что запрос корректный
 		query := r.URL.Query()
-		if query.Get("titles") != "Go" {
-			t.Fatal("expected titles=Go")
+		if query.Get("page") != "подделка" {
+			t.Fatal("expected page=подделка")
 		}
 		w.WriteHeader(http.StatusForbidden)
 	}))
@@ -48,23 +48,23 @@ func makeServerWithEmptyPages(t *testing.T) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Проверяем, что запрос корректный
 		query := r.URL.Query()
-		if query.Get("titles") != "NonExistent" {
-			t.Fatal("expected titles=NonExistent")
+		if query.Get("page") != "NonExistent" {
+			t.Fatal("expected page=NonExistent")
 		}
 		w.WriteHeader(http.StatusOK)
-		writeJSONResponse(w, `{"query":{"pages":{}}}`)
+		writeJSONResponse(w, `{"parse": {"title": "", "wikitext": {"": ""}}}`)
 	}))
 }
 
 func makeServerWithSpecialChars(t *testing.T) *httptest.Server {
 	t.Helper()
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		gotTitle := r.URL.Query().Get("titles")
+		gotTitle := r.URL.Query().Get("page")
 		if gotTitle != "C++" {
 			t.Errorf("Server received wrong title: got %q, want 'C++'", gotTitle)
 		}
 
-		writeJSONResponse(w, `{"query":{"pages":{"123":{"extract":"C++ is a programming language"}}}}`)
+		writeJSONResponse(w, `{"parse": {"title": "C++", "wikitext": {"*": "C++ is a programming language"}}}`)
 	}))
 }
 
@@ -78,11 +78,11 @@ func TestWikiClient(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create WikiClient: %v", err)
 		}
-		extract, err := wc.GetPage("Go")
+		extract, err := wc.GetPage("подделка")
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		want := "Go is a programming language"
+		want := "{{ru-noun|подде́лка|f|подде́лки|подде́лок}}\n\n# [[подделка]]..."
 
 		if extract != want {
 			t.Errorf("want %q, but got %q", want, extract)
@@ -96,7 +96,7 @@ func TestWikiClient(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create WikiClient: %v", err)
 		}
-		extract, err := wc.GetPage("Go")
+		extract, err := wc.GetPage("подделка")
 
 		if err == nil {
 			t.Fatal("Expected an error when server returns 403, but got nil")
@@ -128,7 +128,7 @@ func TestWikiClient(t *testing.T) {
 			t.Errorf("Expected empty extract on error, got %q", extract)
 		}
 
-		if !strings.Contains(err.Error(), "page not found") {
+		if !strings.Contains(err.Error(), "no wikitext found for page") {
 			t.Errorf("Expected error message to contain page not found, got %v", err)
 		}
 	})
@@ -165,12 +165,12 @@ type spyRoundTripper struct {
 
 func (s *spyRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	s.called = true
-	if req.URL.Query().Get("titles") != "Go" {
+	if req.URL.Query().Get("page") != "Go" {
 		return nil, fmt.Errorf("unexpected title")
 	}
 	return &http.Response{
 		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(strings.NewReader(`{"query":{"pages":{"1":{"extract":"Go"}}}}`)),
+		Body:       io.NopCloser(strings.NewReader(`{"parse": {"title": "Go", "wikitext": {"*": "{{ru-noun|подде́лка|f|подде́лки|подде́лок}}\n\n# [[подделка]]..."}}}`)),
 		Header:     make(http.Header),
 	}, nil
 }
