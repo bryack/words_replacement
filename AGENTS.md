@@ -4,13 +4,13 @@ This file provides context and instructions for AI coding agents working on the 
 
 ## Project Overview
 
-Words is a Go utility for text processing and wiki content retrieval. It performs regex-based text replacement operations and provides a MediaWiki API client for content extraction from wiki sources.
+Words is a Go CLI application implementing hexagonal architecture for intelligent word form replacement. It demonstrates clean architecture principles with dependency injection, interface-driven design, and comprehensive testing strategies.
 
 ## Build and Test Commands
 
 ### Build
 ```bash
-go build -o words
+go build -o words ./cmd/cli
 ```
 
 ### Test
@@ -23,6 +23,11 @@ go test ./...
 go test -cover ./...
 ```
 
+### Run acceptance tests
+```bash
+go test ./cmd/cli/...
+```
+
 ### Format code
 ```bash
 gofmt -w .
@@ -31,31 +36,43 @@ gofmt -w .
 ## Code Style Guidelines
 
 - Follow standard Go conventions and `gofmt` formatting
-- Use PascalCase for exported functions (`Replace`, `ReadAndReplace`)
+- Use PascalCase for exported functions (`NewReplacer`, `Replace`)
 - Use camelCase for local variables, PascalCase for exported variables
 - Use UPPER_SNAKE_CASE for package-level constants
 - Test files must end with `_test.go` and be placed alongside source files
+- Interface names should end with -er (`FormsProvider`, `WordReplacer`)
+
+## Architecture Guidelines
+
+- **Hexagonal Architecture**: Maintain strict separation between core business logic (`internal/`) and external adapters (`adapters/`)
+- **Dependency Injection**: All external dependencies must be injected through interfaces defined in `contracts/`
+- **Interface-First Design**: Define contracts before implementations
+- **Provider Pattern**: Use provider interfaces for external services (wiki, file system)
 
 ## Testing Instructions
 
-- Use Go's built-in `testing` package
-- Write table-driven tests for multiple test cases
+- **Unit Tests**: Place in `internal/` packages alongside source code
+- **Integration Tests**: Place in `adapters/` packages for external interface testing
+- **Acceptance Tests**: Place in `cmd/` packages for end-to-end scenarios
+- Use `github.com/alecthomas/assert/v2` for enhanced assertions
 - Test error conditions and edge cases
 - Aim for high test coverage of public functions
-- Use `io/fs` interfaces for file system mocking to maintain zero dependencies
 
 ## Development Environment
 
 - Go version 1.25.5 required
 - Module: `github.com/bryack/words`
-- Zero external dependencies policy - use only standard library
+- Dependencies: `github.com/alecthomas/assert/v2` for testing
 - Target platform: Linux (primary), cross-platform compatible
 
 ## Project Structure
 
-- `words.go` - Main text processing logic and CLI entry point
+- `cmd/cli/` - CLI application entry point and acceptance tests
+- `internal/` - Core business logic (private packages)
+- `adapters/` - External interface implementations
+- `contracts/` - Interface definitions and ports
+- `specifications/` - Behavior-driven specifications
 - `wiki/` - MediaWiki API client package
-- `*_test.go` - Test files alongside source files
 - `.kiro/steering/` - AI agent steering documents
 
 ## Security Considerations
@@ -63,6 +80,7 @@ gofmt -w .
 - Never include API keys, passwords, or sensitive data in code
 - Use proper error handling for all file operations
 - Validate all input data for text processing functions
+- Follow principle of least privilege for external service access
 
 ## Commit Guidelines
 
@@ -70,3 +88,5 @@ gofmt -w .
 - Run `gofmt -w .` to ensure proper formatting
 - Write clear, descriptive commit messages
 - Test both success and error paths for new functionality
+- Ensure all interfaces are properly implemented
+- Maintain separation of concerns between architecture layers

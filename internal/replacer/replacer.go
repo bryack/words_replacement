@@ -2,7 +2,6 @@ package replacer
 
 import (
 	"fmt"
-	"os"
 	"strings"
 )
 
@@ -33,12 +32,4 @@ func (r *Replacer) Replace(input, old, new string) (string, error) {
 		result = strings.ReplaceAll(result, form, new)
 	}
 	return result, err
-}
-
-func WriteFile(filename, data string) error {
-	err := os.WriteFile(filename, []byte(data), 0644)
-	if err != nil {
-		return err
-	}
-	return nil
 }
