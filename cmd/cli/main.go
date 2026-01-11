@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"os"
 
+	adapters "github.com/bryack/words/adapters/cli"
 	"github.com/bryack/words/internal/cli"
 	"github.com/bryack/words/internal/replacer"
 )
 
 func main() {
-	provider := replacer.ProductionStubProvider{}
+	provider := adapters.ProductionStubProvider{}
 	wordReplacer := replacer.NewReplacer(provider)
 
 	app := cli.NewCLI(os.Stdin, os.Stdout, wordReplacer)

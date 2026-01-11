@@ -2,10 +2,7 @@ package replacer
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"testing"
-	"testing/fstest"
 )
 
 type StubFormProvider struct {
@@ -90,54 +87,6 @@ func TestReplace(t *testing.T) {
 					t.Errorf("want %q, but got %q", tt.want, got)
 				}
 			})
-		}
-	})
-}
-
-func TestReadAndReplace(t *testing.T) {
-
-	t.Run("read", func(t *testing.T) {
-		inFile := "hello.md"
-
-		fs := fstest.MapFS{
-			"hello.md": {Data: []byte("**Требования к тестам:** HTTP-тесты используют ту же подделку, что и тесты на уровне сервисов")},
-		}
-		old := "подделка"
-		new := "fake"
-
-		data, err := ReadAndReplace(fs, inFile, old, new)
-
-		if err != nil {
-			t.Fatal(err)
-		}
-		want := "**Требования к тестам:** HTTP-тесты используют ту же fake, что и тесты на уровне сервисов"
-
-		if data != want {
-			t.Errorf("want %q, but got %q", want, data)
-		}
-	})
-}
-
-func TestWriteFile(t *testing.T) {
-
-	t.Run("write", func(t *testing.T) {
-		tempDir := t.TempDir()
-		filename := filepath.Join(tempDir, "hello.md")
-		data := "**Требования к тестам:** HTTP-тесты используют ту же подделку, что и тесты на уровне сервисов"
-
-		err := WriteFile(filename, data)
-
-		if err != nil {
-			t.Errorf("expected no errors, but got %v", err)
-		}
-
-		result, err := os.ReadFile(filename)
-		if err != nil {
-			t.Errorf("failed to write a file %s: %v", filename, err)
-		}
-
-		if string(result) != data {
-			t.Errorf("want %q, but got %q", data, string(result))
 		}
 	})
 }

@@ -2,7 +2,6 @@ package replacer
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 	"strings"
 )
@@ -17,15 +16,6 @@ type Replacer struct {
 
 func NewReplacer(fp FormsProvider) *Replacer {
 	return &Replacer{provider: fp}
-}
-
-type ProductionStubProvider struct{}
-
-func (p ProductionStubProvider) GetForms(word string) (singular, plural []string, err error) {
-	if word == "подделка" {
-		return []string{"подделка", "подделку"}, []string{"подделки"}, nil
-	}
-	return nil, nil, fmt.Errorf("word not supported in skeleton")
 }
 
 func (r *Replacer) Replace(input, old, new string) (string, error) {
@@ -43,21 +33,6 @@ func (r *Replacer) Replace(input, old, new string) (string, error) {
 		result = strings.ReplaceAll(result, form, new)
 	}
 	return result, err
-}
-
-func ReadAndReplace(fsys fs.FS, filename, old, new string) (string, error) {
-	data, err := fs.ReadFile(fsys, filename)
-	if err != nil {
-		return "", err
-	}
-	provider := ProductionStubProvider{}
-	wordReplacer := NewReplacer(provider)
-	repl, err := wordReplacer.Replace(string(data), old, new)
-	if err != nil {
-		return "", err
-	}
-
-	return repl, nil
 }
 
 func WriteFile(filename, data string) error {
