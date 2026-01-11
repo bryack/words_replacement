@@ -13,7 +13,9 @@ type WiktionaryFormsProvider interface {
 
 // WiktionaryFormsSpecification captures business behavior
 func WiktionaryFormsSpecification(t *testing.T, provider WiktionaryFormsProvider) {
-	t.Run("should get Russian word forms from Wiktionary", func(t *testing.T) {
+	t.Run("should get singular and plural forms", func(t *testing.T) {
+		// NOTE: forms are intentionally hardcoded for initial integration.
+		// Specification will be generalized once provider behavior is stabilized.
 		singular, plural, err := provider.GetForms("подделка")
 		assert.NoError(t, err)
 		assert.True(t, len(singular) > 0, "should return singular forms")
