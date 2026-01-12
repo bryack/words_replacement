@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 
+	"github.com/bryack/words/adapters/wiktionary"
 	"github.com/bryack/words/internal/replacer"
 )
 
@@ -19,18 +20,12 @@ type Driver struct {
 	New    string
 }
 
-type ProductionStubProvider struct{}
-
-func (p ProductionStubProvider) GetForms(word string) (singular, plural []string, err error) {
-	if word == SupportedWord {
-		return []string{"подделка", "подделку"}, []string{"подделки"}, nil
+func (d Driver) createReplacer() (*replacer.Replacer, error) {
+	provider, err := wiktionary.NewProvider("https://en.wiktionary.org/w/api.php")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get provider: %w", err)
 	}
-	return nil, nil, fmt.Errorf("word not supported in skeleton")
-}
-
-func (d Driver) createReplacer() *replacer.Replacer {
-	provider := ProductionStubProvider{}
-	return replacer.NewReplacer(provider)
+	return replacer.NewReplacer(provider), nil
 }
 
 func (d Driver) ReplaceWordsInFile(inputPath, outputPath string) error {
@@ -40,7 +35,10 @@ func (d Driver) ReplaceWordsInFile(inputPath, outputPath string) error {
 		return fmt.Errorf("failed to read file %s: %w", inputPath, err)
 	}
 
-	replacer := d.createReplacer()
+	replacer, err := d.createReplacer()
+	if err != nil {
+		return fmt.Errorf("failed to create replacer: %w", err)
+	}
 	repl, err := replacer.Replace(string(data), d.Old, d.New)
 	if err != nil {
 		return err

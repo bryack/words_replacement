@@ -56,7 +56,12 @@ func (wc *WikiClient) buildWikiURL(title string) (string, error) {
 }
 
 func (wc *WikiClient) makeWikiRequest(requestURL string) ([]byte, error) {
-	resp, err := wc.httpClient.Get(requestURL)
+	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("User-Agent", "WordsBot/1.0 (https://github.com/bryack/words)")
+	resp, err := wc.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make request %q: %w", requestURL, err)
 	}
