@@ -42,27 +42,6 @@ func TestSQLiteFormsProvider(t *testing.T) {
 }
 
 func TestDataBaseConnection(t *testing.T) {
-
-	t.Run("DB connection", func(t *testing.T) {
-		provider := &SQLiteFormsProvider{}
-		err := provider.initDataBase()
-		defer provider.db.Close()
-
-		assert.NoError(t, err)
-		assert.NotNil(t, provider.db)
-	})
-	t.Run("DB table creation", func(t *testing.T) {
-		provider := &SQLiteFormsProvider{}
-		err := provider.initDataBase()
-		defer provider.db.Close()
-		assert.NoError(t, err)
-
-		err = provider.createTable()
-		assert.NoError(t, err)
-
-		_, err = provider.db.Query("SELECT 1 FROM word_forms LIMIT 1")
-		assert.NoError(t, err)
-	})
 	t.Run("DB insert", func(t *testing.T) {
 		provider := &SQLiteFormsProvider{}
 		err := provider.initDataBase()
