@@ -12,7 +12,33 @@ type SQLiteFormsProvider struct {
 }
 
 func (sfp *SQLiteFormsProvider) GetForms(word string) (singular, plural []string, err error) {
-	return nil, nil, fmt.Errorf("not implemented")
+	err = sfp.initDataBase()
+	if err != nil {
+		return nil, nil, err
+	}
+	defer sfp.db.Close()
+	err = sfp.createTable()
+	if err != nil {
+		return nil, nil, err
+	}
+	err = sfp.insertTestData()
+	if err != nil {
+		return nil, nil, err
+	}
+	var sing, plur string
+	err = sfp.db.QueryRow("SELECT singular, plural FROM word_forms WHERE word = $1", word).Scan(&sing, &plur)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil, fmt.Errorf("not found")
+		} else {
+			return nil, nil, fmt.Errorf("failed to scan: %w", err)
+		}
+	}
+
+	singular = append(singular, sing)
+	plural = append(plural, plur)
+
+	return singular, plural, nil
 }
 
 func (sfp *SQLiteFormsProvider) initDataBase() error {

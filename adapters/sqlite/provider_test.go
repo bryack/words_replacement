@@ -89,3 +89,14 @@ func TestDataBaseConnection(t *testing.T) {
 		assert.Equal(t, "подделки", plural)
 	})
 }
+
+func TestGetForms(t *testing.T) {
+
+	t.Run("TestCase", func(t *testing.T) {
+		provider := setupSQLiteProvider(t)
+		s, p, err := provider.GetForms("подделка")
+		assert.NoError(t, err)
+		assert.Contains(t, s, "подделка")
+		assert.Contains(t, p, "подделки")
+	})
+}
