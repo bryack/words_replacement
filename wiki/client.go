@@ -30,12 +30,12 @@ func NewWikiClient(baseURL string, httpClient *http.Client) (*WikiClient, error)
 func (wc *WikiClient) GetPage(title string) (string, error) {
 	requestURL, err := wc.buildWikiURL(title)
 	if err != nil {
-		return "", fmt.Errorf("failed to build wiki URL: %w", err)
+		return "", err
 	}
 
 	body, err := wc.makeWikiRequest(requestURL)
 	if err != nil {
-		return "", fmt.Errorf("error: not found: %w", err)
+		return "", err
 	}
 
 	return parseWikiResponse(body)
