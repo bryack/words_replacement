@@ -8,14 +8,7 @@ import (
 )
 
 func setupSQLiteProvider(t *testing.T) *SQLiteFormsProvider {
-	provider := &SQLiteFormsProvider{}
-	err := provider.initDataBase()
-	assert.NoError(t, err)
-
-	err = provider.createTable()
-	assert.NoError(t, err)
-
-	err = provider.insertTestData()
+	provider, err := NewSQLiteFormsProvider()
 	assert.NoError(t, err)
 
 	t.Cleanup(func() {

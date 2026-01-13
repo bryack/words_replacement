@@ -11,22 +11,26 @@ type SQLiteFormsProvider struct {
 	db *sql.DB
 }
 
+func NewSQLiteFormsProvider() (*SQLiteFormsProvider, error) {
+	provider := &SQLiteFormsProvider{}
+	err := provider.initDataBase()
+	if err != nil {
+		return nil, err
+	}
+	err = provider.createTable()
+	if err != nil {
+		return nil, err
+	}
+	err = provider.insertTestData()
+	if err != nil {
+		return nil, err
+	}
+	return provider, nil
+}
+
 func (sfp *SQLiteFormsProvider) GetForms(word string) (singular, plural []string, err error) {
-	err = sfp.initDataBase()
-	if err != nil {
-		return nil, nil, err
-	}
-	defer sfp.db.Close()
-	err = sfp.createTable()
-	if err != nil {
-		return nil, nil, err
-	}
-	err = sfp.insertTestData()
-	if err != nil {
-		return nil, nil, err
-	}
 	var sing, plur string
-	err = sfp.db.QueryRow("SELECT singular, plural FROM word_forms WHERE word = $1", word).Scan(&sing, &plur)
+	err = sfp.db.QueryRow("SELECT singular, plural FROM word_forms WHERE word = ?", word).Scan(&sing, &plur)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil, fmt.Errorf("not found")
