@@ -8,6 +8,16 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const (
+	createTableSQL = `CREATE TABLE IF NOT EXISTS word_forms (
+        word TEXT PRIMARY KEY,
+        singular TEXT,
+        plural TEXT
+    )`
+	insertWordSQL  = `INSERT INTO word_forms (word, singular, plural) VALUES (?, ?, ?)`
+	selectFormsSQL = `SELECT singular, plural FROM word_forms WHERE word = ?`
+)
+
 type SQLiteFormsProvider struct {
 	db *sql.DB
 }
@@ -44,7 +54,7 @@ func LoadFromJSONLFile(filepath string) DataLoader {
 		}
 		defer tx.Rollback()
 
-		stmt, err := tx.Prepare(`INSERT INTO word_forms (word, singular, plural) VALUES (?, ?, ?)`)
+		stmt, err := tx.Prepare(insertWordSQL)
 		if err != nil {
 			return fmt.Errorf("failed to prepare statement: %w", err)
 		}
@@ -52,6 +62,9 @@ func LoadFromJSONLFile(filepath string) DataLoader {
 
 		for _, entry := range entries {
 			s, p := entry.ExtractNominativeForms()
+			if s == "" && p == "" {
+				continue
+			}
 			_, err := stmt.Exec(entry.Word, s, p)
 			if err != nil {
 				return fmt.Errorf("failed to insert word %q: %w", entry.Word, err)
@@ -66,7 +79,7 @@ func LoadFromJSONLFile(filepath string) DataLoader {
 
 func (sfp *SQLiteFormsProvider) GetForms(word string) (singular, plural []string, err error) {
 	var sing, plur string
-	err = sfp.db.QueryRow("SELECT singular, plural FROM word_forms WHERE word = ?", word).Scan(&sing, &plur)
+	err = sfp.db.QueryRow(selectFormsSQL, word).Scan(&sing, &plur)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil, fmt.Errorf("not found")
@@ -92,12 +105,7 @@ func (sfp *SQLiteFormsProvider) initDataBase() error {
 }
 
 func (sfp *SQLiteFormsProvider) createTable() error {
-	query := `  
-   CREATE TABLE IF NOT EXISTS word_forms (  
-       word TEXT,  
-       singular TEXT,  
-       plural TEXT  
-   )`
+	query := createTableSQL
 	_, err := sfp.db.Exec(query)
 	if err != nil {
 		return fmt.Errorf("failed to create table: %w", err)
