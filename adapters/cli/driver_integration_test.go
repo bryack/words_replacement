@@ -23,7 +23,7 @@ func TestWordReplacerCLIContract(t *testing.T) {
 			Output:   output,
 			Old:      "подделка",
 			New:      "fake",
-			provider: provider,
+			Provider: provider,
 		}
 
 		contracts.WordReplacerCLIContract(t, driver)

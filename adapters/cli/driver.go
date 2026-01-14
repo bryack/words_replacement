@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"os"
 
-	"github.com/bryack/words/adapters/sqlite"
 	"github.com/bryack/words/internal/replacer"
 )
 
@@ -17,11 +16,11 @@ type Driver struct {
 	Output   string
 	Old      string
 	New      string
-	provider *sqlite.SQLiteFormsProvider
+	Provider replacer.FormsProvider
 }
 
 func (d *Driver) createReplacer() *replacer.Replacer {
-	return replacer.NewReplacer(d.provider)
+	return replacer.NewReplacer(d.Provider)
 }
 
 func (d *Driver) ReplaceWordsInFile(inputPath, outputPath string) error {
