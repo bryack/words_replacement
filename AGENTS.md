@@ -4,7 +4,7 @@ This file provides context and instructions for AI coding agents working on the 
 
 ## Project Overview
 
-Words is a Go CLI application implementing hexagonal architecture for intelligent word form replacement. It demonstrates clean architecture principles with dependency injection, interface-driven design, and comprehensive testing strategies.
+Words is a Go CLI application implementing hexagonal architecture for intelligent word form replacement. It demonstrates clean architecture principles with dependency injection, interface-driven design, comprehensive testing strategies, and production-ready data integration with SQLite and Kaikki.org linguistic datasets.
 
 ## Build and Test Commands
 
@@ -47,7 +47,7 @@ gofmt -w .
 - **Hexagonal Architecture**: Maintain strict separation between core business logic (`internal/`) and external adapters (`adapters/`)
 - **Dependency Injection**: All external dependencies must be injected through interfaces defined in `contracts/`
 - **Interface-First Design**: Define contracts before implementations
-- **Provider Pattern**: Use provider interfaces for external services (wiki, file system)
+- **Provider Pattern**: Use provider interfaces for external services (wiki, database, file system)
 
 ## Testing Instructions
 
@@ -58,18 +58,18 @@ gofmt -w .
 - Test error conditions and edge cases
 - Aim for high test coverage of public functions
 
-## Development Environment
+## Dependencies
 
 - Go version 1.25.5 required
 - Module: `github.com/bryack/words`
-- Dependencies: `github.com/alecthomas/assert/v2` for testing
+- Dependencies: `github.com/alecthomas/assert/v2` for testing, `github.com/mattn/go-sqlite3` for database operations
 - Target platform: Linux (primary), cross-platform compatible
 
 ## Project Structure
 
 - `cmd/cli/` - CLI application entry point and acceptance tests
 - `internal/` - Core business logic (private packages)
-- `adapters/` - External interface implementations
+- `adapters/` - External interface implementations (CLI, SQLite, Wiktionary)
 - `contracts/` - Interface definitions and ports
 - `specifications/` - Behavior-driven specifications
 - `wiki/` - MediaWiki API client package
