@@ -6,6 +6,15 @@ This file provides context and instructions for AI coding agents working on the 
 
 Words is a Go CLI application implementing hexagonal architecture for intelligent word form replacement. It demonstrates clean architecture principles with dependency injection, interface-driven design, comprehensive testing strategies, and production-ready data integration with SQLite and Kaikki.org linguistic datasets.
 
+**Current Implementation Status:**
+- ✅ SQLite database integration with in-memory storage
+- ✅ Kaikki.org JSONL data loading and parsing
+- ✅ Nominative form extraction with stress mark removal
+- ✅ DataLoader pattern for flexible data sources
+- ✅ ATDD methodology with acceptance tests as north-star
+- ✅ Fast unit tests with test data, integration tests with real JSONL
+- ⚠️ MediaWiki API integration (external service may return 403)
+
 ## Build and Test Commands
 
 ### Build
@@ -69,7 +78,14 @@ gofmt -w .
 
 - `cmd/cli/` - CLI application entry point and acceptance tests
 - `internal/` - Core business logic (private packages)
-- `adapters/` - External interface implementations (CLI, SQLite, Wiktionary)
+- `adapters/` - External interface implementations
+  - `adapters/sqlite/` - SQLite database provider with JSONL data loading
+    - `models.go` - JSONL data structures (KaikkiEntry, WordForm)
+    - `extractor.go` - Form extraction logic with stress mark removal
+    - `loader.go` - JSONL file parsing
+    - `provider.go` - SQLite forms provider with DataLoader pattern
+  - `adapters/wiktionary/` - MediaWiki API client
+  - `adapters/cli/` - CLI driver for file operations
 - `contracts/` - Interface definitions and ports
 - `specifications/` - Behavior-driven specifications
 - `wiki/` - MediaWiki API client package

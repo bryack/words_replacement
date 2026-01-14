@@ -1,13 +1,15 @@
 # Words
 
-A Go CLI application for intelligent word form replacement implementing hexagonal architecture with clean separation of concerns.
+A Go CLI application for intelligent word form replacement implementing hexagonal architecture with clean separation of concerns and production-ready linguistic data integration.
 
 ## Features
 
-- **Intelligent Word Replacement**: Context-aware singular/plural form transformations
-- **Clean Architecture**: Hexagonal architecture with dependency injection
-- **MediaWiki Integration**: API client for linguistic data retrieval
-- **Comprehensive Testing**: Unit, integration, and acceptance test coverage
+- **Intelligent Word Replacement**: Context-aware nominative form transformations for Russian nouns
+- **Clean Architecture**: Hexagonal architecture with dependency injection and interface-driven design
+- **SQLite Database**: In-memory database for fast word form lookups
+- **Kaikki.org Integration**: Production linguistic data from Kaikki.org JSONL dictionary
+- **Multiple Data Sources**: Support for SQLite, MediaWiki API, and custom providers
+- **Comprehensive Testing**: Unit, integration, and acceptance test coverage with ATDD methodology
 - **CLI Interface**: Command-line tool with proper error handling
 
 ## Installation
@@ -29,9 +31,20 @@ The project demonstrates hexagonal architecture principles:
 - `cmd/cli/` - Application entry point and acceptance tests
 - `internal/` - Core business logic (replacer, cli)
 - `adapters/` - External interface implementations
+  - `adapters/sqlite/` - SQLite database provider with JSONL data loading
+  - `adapters/wiktionary/` - MediaWiki API client
+  - `adapters/cli/` - CLI driver for file operations
 - `contracts/` - Interface definitions and ports
 - `specifications/` - Behavior-driven specifications
 - `wiki/` - MediaWiki API client integration
+
+## Data Sources
+
+The application uses Kaikki.org JSONL dictionary data:
+- Parses Russian noun entries from JSONL format
+- Extracts nominative singular and plural forms
+- Removes stress marks for consistent matching
+- Loads data into in-memory SQLite database at startup
 
 ## Development
 
@@ -54,6 +67,7 @@ gofmt -w .
 
 - Go 1.25.5+
 - `github.com/alecthomas/assert/v2` (testing)
+- `github.com/mattn/go-sqlite3` (database)
 
 ## License
 
