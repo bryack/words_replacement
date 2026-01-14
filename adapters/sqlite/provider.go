@@ -12,7 +12,9 @@ type SQLiteFormsProvider struct {
 	db *sql.DB
 }
 
-func NewSQLiteFormsProvider() (*SQLiteFormsProvider, error) {
+type DataLoader func(sfp *SQLiteFormsProvider) error
+
+func NewSQLiteFormsProvider(dt DataLoader) (*SQLiteFormsProvider, error) {
 	provider := &SQLiteFormsProvider{}
 	err := provider.initDataBase()
 	if err != nil {
@@ -22,7 +24,7 @@ func NewSQLiteFormsProvider() (*SQLiteFormsProvider, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create table: %w", err)
 	}
-	err = provider.insertTestData()
+	err = dt(provider)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert test data to db: %w", err)
 	}
@@ -66,15 +68,6 @@ func (sfp *SQLiteFormsProvider) createTable() error {
 	_, err := sfp.db.Exec(query)
 	if err != nil {
 		return fmt.Errorf("failed to create table: %w", err)
-	}
-	return nil
-}
-
-func (sfp *SQLiteFormsProvider) insertTestData() error {
-	query := `INSERT INTO word_forms (word, singular, plural) VALUES ('подделка', 'подделка', 'подделки')`
-	_, err := sfp.db.Exec(query)
-	if err != nil {
-		return fmt.Errorf("failed to insert into table: %w", err)
 	}
 	return nil
 }

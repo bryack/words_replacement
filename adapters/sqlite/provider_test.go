@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/bryack/words/specifications"
@@ -8,7 +9,7 @@ import (
 )
 
 func setupSQLiteProvider(t *testing.T) *SQLiteFormsProvider {
-	provider, err := NewSQLiteFormsProvider()
+	provider, err := NewSQLiteFormsProvider(insertTestData)
 	assert.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -17,6 +18,15 @@ func setupSQLiteProvider(t *testing.T) *SQLiteFormsProvider {
 		}
 	})
 	return provider
+}
+
+func insertTestData(sfp *SQLiteFormsProvider) error {
+	query := `INSERT INTO word_forms (word, singular, plural) VALUES ('подделка', 'подделка', 'подделки')`
+	_, err := sfp.db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("failed to insert into table: %w", err)
+	}
+	return nil
 }
 
 func TestSQLiteProvider(t *testing.T) {
@@ -50,7 +60,7 @@ func TestDataBaseConnection(t *testing.T) {
 		err = provider.createTable()
 		assert.NoError(t, err)
 
-		err = provider.insertTestData()
+		err = insertTestData(provider)
 		assert.NoError(t, err)
 
 		var count int
