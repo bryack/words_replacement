@@ -13,7 +13,7 @@ const initialCapacity = 10
 func LoadFromJSONL(filepath string) ([]KaikkiEntry, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open file %s: %w", filepath, err)
+		return nil, fmt.Errorf("failed to open file %q: %w", filepath, err)
 	}
 	defer file.Close()
 	entries := make([]KaikkiEntry, 0, initialCapacity)
@@ -34,7 +34,7 @@ func LoadFromJSONL(filepath string) ([]KaikkiEntry, error) {
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("failed to scan file %s: %w", filepath, err)
+		return nil, fmt.Errorf("failed to scan file %q: %w", filepath, err)
 	}
 	return entries, nil
 }

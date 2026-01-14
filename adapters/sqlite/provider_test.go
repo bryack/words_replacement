@@ -9,6 +9,7 @@ import (
 )
 
 func setupSQLiteProvider(t *testing.T) *SQLiteFormsProvider {
+	t.Helper()
 	provider, err := NewSQLiteFormsProvider(insertTestData)
 	assert.NoError(t, err)
 
@@ -80,5 +81,22 @@ func TestGetForms(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Contains(t, s, "подделка")
 		assert.Contains(t, p, "подделки")
+	})
+}
+
+func TestLoadFromJSONLFile(t *testing.T) {
+	t.Run("loads data from JSONL file into database", func(t *testing.T) {
+		filepath := "fake.jsonl"
+		loader := LoadFromJSONLFile(filepath)
+		provider, err := NewSQLiteFormsProvider(loader)
+		assert.NoError(t, err)
+
+		var count int
+		var singular, plural string
+		err = provider.db.QueryRow("SELECT COUNT(*), singular, plural FROM word_forms WHERE word = 'подделка'").Scan(&count, &singular, &plural)
+		assert.NoError(t, err)
+		assert.True(t, count > 0)
+		assert.Equal(t, "подделка", singular)
+		assert.Equal(t, "подделки", plural)
 	})
 }

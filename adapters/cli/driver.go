@@ -5,35 +5,26 @@ import (
 	"io/fs"
 	"os"
 
+	"github.com/bryack/words/adapters/sqlite"
 	"github.com/bryack/words/internal/replacer"
 )
 
 const DefaultFilePermissions = 0644
-const SupportedWord = "подделка"
 const RootDir = "."
 
 type Driver struct {
-	Input  string
-	Output string
-	Old    string
-	New    string
+	Input    string
+	Output   string
+	Old      string
+	New      string
+	provider *sqlite.SQLiteFormsProvider
 }
 
-type ProductionStubProvider struct{}
-
-func (p ProductionStubProvider) GetForms(word string) (singular, plural []string, err error) {
-	if word == SupportedWord {
-		return []string{"подделка", "подделку"}, []string{"подделки"}, nil
-	}
-	return nil, nil, fmt.Errorf("word not supported in skeleton")
+func (d *Driver) createReplacer() *replacer.Replacer {
+	return replacer.NewReplacer(d.provider)
 }
 
-func (d Driver) createReplacer() *replacer.Replacer {
-	provider := ProductionStubProvider{}
-	return replacer.NewReplacer(provider)
-}
-
-func (d Driver) ReplaceWordsInFile(inputPath, outputPath string) error {
+func (d *Driver) ReplaceWordsInFile(inputPath, outputPath string) error {
 	fsys := os.DirFS(RootDir)
 	data, err := fs.ReadFile(fsys, inputPath)
 	if err != nil {
@@ -49,7 +40,7 @@ func (d Driver) ReplaceWordsInFile(inputPath, outputPath string) error {
 	return os.WriteFile(outputPath, []byte(repl), DefaultFilePermissions)
 }
 
-func (d Driver) ReadFile(path string) (string, error) {
+func (d *Driver) ReadFile(path string) (string, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return "", err

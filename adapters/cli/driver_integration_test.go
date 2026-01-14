@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bryack/words/adapters/sqlite"
 	"github.com/bryack/words/contracts"
 )
 
@@ -13,12 +14,16 @@ func TestWordReplacerCLIContract(t *testing.T) {
 		tempDir := t.TempDir()
 		input := filepath.Join(tempDir, "input.md")
 		output := filepath.Join(tempDir, "output.md")
-
+		provider, err := sqlite.NewSQLiteFormsProvider(sqlite.LoadFromJSONLFile("../../adapters/sqlite/fake.jsonl"))
+		if err != nil {
+			t.Fatalf("failed to create provider: %v", err)
+		}
 		driver := &Driver{
-			Input:  input,
-			Output: output,
-			Old:    "подделка",
-			New:    "fake",
+			Input:    input,
+			Output:   output,
+			Old:      "подделка",
+			New:      "fake",
+			provider: provider,
 		}
 
 		contracts.WordReplacerCLIContract(t, driver)

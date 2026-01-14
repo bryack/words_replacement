@@ -12,9 +12,10 @@ type SQLiteFormsProvider struct {
 	db *sql.DB
 }
 
+// DataLoader defines a function that loads word forms into the database.
 type DataLoader func(sfp *SQLiteFormsProvider) error
 
-func NewSQLiteFormsProvider(dt DataLoader) (*SQLiteFormsProvider, error) {
+func NewSQLiteFormsProvider(loader DataLoader) (*SQLiteFormsProvider, error) {
 	provider := &SQLiteFormsProvider{}
 	err := provider.initDataBase()
 	if err != nil {
@@ -24,11 +25,43 @@ func NewSQLiteFormsProvider(dt DataLoader) (*SQLiteFormsProvider, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create table: %w", err)
 	}
-	err = dt(provider)
+	err = loader(provider)
 	if err != nil {
-		return nil, fmt.Errorf("failed to insert test data to db: %w", err)
+		return nil, fmt.Errorf("failed to load data to db: %w", err)
 	}
 	return provider, nil
+}
+
+func LoadFromJSONLFile(filepath string) DataLoader {
+	return func(sfp *SQLiteFormsProvider) error {
+		entries, err := LoadFromJSONL(filepath)
+		if err != nil {
+			return fmt.Errorf("failed to load from JSONL file %q: %w", filepath, err)
+		}
+		tx, err := sfp.db.Begin()
+		if err != nil {
+			return fmt.Errorf("failed to begin transaction: %w", err)
+		}
+		defer tx.Rollback()
+
+		stmt, err := tx.Prepare(`INSERT INTO word_forms (word, singular, plural) VALUES (?, ?, ?)`)
+		if err != nil {
+			return fmt.Errorf("failed to prepare statement: %w", err)
+		}
+		defer stmt.Close()
+
+		for _, entry := range entries {
+			s, p := entry.ExtractNominativeForms()
+			_, err := stmt.Exec(entry.Word, s, p)
+			if err != nil {
+				return fmt.Errorf("failed to insert word %q: %w", entry.Word, err)
+			}
+		}
+		if err = tx.Commit(); err != nil {
+			return fmt.Errorf("failed to commit transaction: %w", err)
+		}
+		return nil
+	}
 }
 
 func (sfp *SQLiteFormsProvider) GetForms(word string) (singular, plural []string, err error) {

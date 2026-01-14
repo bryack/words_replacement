@@ -11,7 +11,7 @@ type WordReplacer interface {
 }
 
 func WordReplacerSpecification(t testing.TB, replacer WordReplacer) {
-	text := "Требования к тестам: HTTP-тесты используют ту же подделку"
+	text := "Требования к тестам: HTTP-тесты используют ту же подделка"
 	oldWord := "подделка"
 	newWord := "fake"
 
