@@ -61,7 +61,7 @@ func LoadFromJSONLFile(filepath string) DataLoader {
 		defer stmt.Close()
 
 		for _, entry := range entries {
-			s, p := entry.ExtractTwoForms()
+			s, p := entry.ExtractAllForms()
 			if len(s) == 0 && len(p) == 0 {
 				continue
 			}

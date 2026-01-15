@@ -7,32 +7,40 @@ import (
 
 const russianStressMark = '\u0301'
 
-// ExtractTwoForms extracts nominative and accusative singular and plural forms from the entry.
+// ExtractAllForms extracts all 6 Russian case forms:
+// nominative, accusative, genitive, dative, instrumental, prepositional.
 // Stress marks are removed from the returned forms.
 // Returns empty string slices if the forms are not found.
-func (entry *KaikkiEntry) ExtractTwoForms() (singular, plural []string) {
+func (entry *KaikkiEntry) ExtractAllForms() (singular, plural []string) {
+	caseNames := []string{"nominative",
+		"accusative",
+		"genitive",
+		"dative",
+		"instrumental",
+		"prepositional",
+	}
+	for _, caseName := range caseNames {
+		s, p := entry.extractCases(caseName)
+		singular = append(singular, s...)
+		plural = append(plural, p...)
+	}
+
+	return deduplicate(singular), deduplicate(plural)
+}
+
+func (entry *KaikkiEntry) extractCases(caseName string) (singular, plural []string) {
 	for _, form := range entry.Forms {
 		if len(form.Form) == 0 {
 			continue
 		}
-		// Nominative
-		if containsAll(form.Tags, []string{"nominative", "singular"}) {
+		if containsAll(form.Tags, []string{caseName, "singular"}) {
 			singular = append(singular, RemoveRussianStress(form.Form))
 		}
-
-		if containsAll(form.Tags, []string{"nominative", "plural"}) {
-			plural = append(plural, RemoveRussianStress(form.Form))
-		}
-
-		// Accusative
-		if containsAll(form.Tags, []string{"accusative", "singular"}) {
-			singular = append(singular, RemoveRussianStress(form.Form))
-		}
-		if containsAll(form.Tags, []string{"accusative", "plural"}) {
+		if containsAll(form.Tags, []string{caseName, "plural"}) {
 			plural = append(plural, RemoveRussianStress(form.Form))
 		}
 	}
-	return deduplicate(singular), deduplicate(plural)
+	return singular, plural
 }
 
 func deduplicate(forms []string) []string {

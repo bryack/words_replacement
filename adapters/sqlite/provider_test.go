@@ -22,7 +22,7 @@ func setupSQLiteProvider(t *testing.T) *SQLiteFormsProvider {
 }
 
 func insertTestData(sfp *SQLiteFormsProvider) error {
-	query := `INSERT INTO word_forms (word, singular_forms, plural_forms) VALUES ('подделка', '["подделка", "подделку"]', '["подделки"]')`
+	query := `INSERT INTO word_forms (word, singular_forms, plural_forms) VALUES ('подделка', '["подделка","подделку","подделки","подделке","подделкой"]', '["подделки","подделок","подделкам","подделками","подделках"]')`
 	_, err := sfp.db.Exec(query)
 	if err != nil {
 		return fmt.Errorf("failed to insert into table: %w", err)
@@ -69,7 +69,7 @@ func TestDataBaseConnection(t *testing.T) {
 		err = provider.db.QueryRow("SELECT COUNT(*), plural_forms FROM word_forms WHERE word = 'подделка'").Scan(&count, &plural)
 		assert.NoError(t, err)
 		assert.True(t, count > 0)
-		assert.Equal(t, `["подделки"]`, plural)
+		assert.Equal(t, `["подделки","подделок","подделкам","подделками","подделках"]`, plural)
 	})
 }
 
@@ -96,7 +96,7 @@ func TestLoadFromJSONLFile(t *testing.T) {
 		err = provider.db.QueryRow("SELECT COUNT(*), singular_forms, plural_forms FROM word_forms WHERE word = 'подделка'").Scan(&count, &singular, &plural)
 		assert.NoError(t, err)
 		assert.True(t, count > 0)
-		assert.Equal(t, `["подделка","подделку"]`, singular)
-		assert.Equal(t, `["подделки"]`, plural)
+		assert.Equal(t, `["подделка","подделку","подделки","подделке","подделкой","подделкою"]`, singular)
+		assert.Equal(t, `["подделки","подделок","подделкам","подделками","подделках"]`, plural)
 	})
 }

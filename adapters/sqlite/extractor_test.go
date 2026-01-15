@@ -8,7 +8,7 @@ import (
 	"github.com/alecthomas/assert/v2"
 )
 
-func TestExtractTwoForms(t *testing.T) {
+func TestExtractAllForms(t *testing.T) {
 	dataFromFile, err := os.ReadFile("fake.jsonl")
 	assert.NoError(t, err)
 
@@ -19,10 +19,10 @@ func TestExtractTwoForms(t *testing.T) {
 		wantPlural   []string
 	}{
 		{
-			name:         "extracts nominative and accusative forms from real JSONL",
+			name:         "extracts all 6 case forms from real JSONL",
 			data:         dataFromFile,
-			wantSingular: []string{"подделка", "подделку"},
-			wantPlural:   []string{"подделки"},
+			wantSingular: []string{"подделка", "подделку", "подделки", "подделке", "подделкой", "подделкою"},
+			wantPlural:   []string{"подделки", "подделок", "подделкам", "подделками", "подделках"},
 		},
 		{
 			name: "some empty forms and duplicate tags",
@@ -57,7 +57,7 @@ func TestExtractTwoForms(t *testing.T) {
 			err = json.Unmarshal(tt.data, &entry)
 			assert.NoError(t, err)
 
-			s, p := entry.ExtractTwoForms()
+			s, p := entry.ExtractAllForms()
 			assert.Equal(t, tt.wantSingular, s)
 			assert.Equal(t, tt.wantPlural, p)
 		})

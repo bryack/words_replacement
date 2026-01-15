@@ -25,6 +25,22 @@ func WiktionaryFormsSpecification(t *testing.T, provider WiktionaryFormsProvider
 		// Accusative forms
 		assert.SliceContains(t, singular, "подделку")
 		assert.SliceContains(t, plural, "подделки")
+
+		// Genitive forms
+		assert.SliceContains(t, singular, "подделки")
+		assert.SliceContains(t, plural, "подделок")
+
+		// Dative forms
+		assert.SliceContains(t, singular, "подделке")
+		assert.SliceContains(t, plural, "подделкам")
+
+		// Instrumental forms
+		assert.SliceContains(t, singular, "подделкой")
+		assert.SliceContains(t, plural, "подделками")
+
+		// Prepositional forms
+		assert.SliceContains(t, singular, "подделке")
+		assert.SliceContains(t, plural, "подделках")
 	})
 
 	t.Run("should handle non-existent words gracefully", func(t *testing.T) {
