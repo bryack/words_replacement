@@ -18,9 +18,12 @@ func WiktionaryFormsSpecification(t *testing.T, provider WiktionaryFormsProvider
 		// Specification will be generalized once provider behavior is stabilized.
 		singular, plural, err := provider.GetForms("подделка")
 		assert.NoError(t, err)
-		assert.True(t, len(singular) > 0, "should return singular forms")
-		assert.True(t, len(plural) > 0, "should return plural forms")
+		// Nominative forms
 		assert.SliceContains(t, singular, "подделка")
+		assert.SliceContains(t, plural, "подделки")
+
+		// Accusative forms
+		assert.SliceContains(t, singular, "подделку")
 		assert.SliceContains(t, plural, "подделки")
 	})
 
@@ -30,6 +33,5 @@ func WiktionaryFormsSpecification(t *testing.T, provider WiktionaryFormsProvider
 		assert.Error(t, err)
 		assert.True(t, len(singular) == 0, "should be empty")
 		assert.True(t, len(plural) == 0, "should be empty")
-		assert.Contains(t, err.Error(), "not found")
 	})
 }

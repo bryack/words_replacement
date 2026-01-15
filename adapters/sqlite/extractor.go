@@ -7,19 +7,47 @@ import (
 
 const russianStressMark = '\u0301'
 
-// ExtractNominativeForms extracts nominative singular and plural forms from the entry.
+// ExtractTwoForms extracts nominative and accusative singular and plural forms from the entry.
 // Stress marks are removed from the returned forms.
-// Returns empty strings if the forms are not found.
-func (entry *KaikkiEntry) ExtractNominativeForms() (singular, plural string) {
+// Returns empty string slices if the forms are not found.
+func (entry *KaikkiEntry) ExtractTwoForms() (singular, plural []string) {
 	for _, form := range entry.Forms {
-		if containsAll(form.Tags, []string{"nominative", "singular"}) {
-			singular = RemoveRussianStress(form.Form)
+		if len(form.Form) == 0 {
+			continue
 		}
+		// Nominative
+		if containsAll(form.Tags, []string{"nominative", "singular"}) {
+			singular = append(singular, RemoveRussianStress(form.Form))
+		}
+
 		if containsAll(form.Tags, []string{"nominative", "plural"}) {
-			plural = RemoveRussianStress(form.Form)
+			plural = append(plural, RemoveRussianStress(form.Form))
+		}
+
+		// Accusative
+		if containsAll(form.Tags, []string{"accusative", "singular"}) {
+			singular = append(singular, RemoveRussianStress(form.Form))
+		}
+		if containsAll(form.Tags, []string{"accusative", "plural"}) {
+			plural = append(plural, RemoveRussianStress(form.Form))
 		}
 	}
-	return singular, plural
+	return deduplicate(singular), deduplicate(plural)
+}
+
+func deduplicate(forms []string) []string {
+	if len(forms) == 0 {
+		return []string{}
+	}
+	seen := make(map[string]bool, len(forms))
+	result := make([]string, 0, len(forms))
+	for _, form := range forms {
+		if !seen[form] {
+			seen[form] = true
+			result = append(result, form)
+		}
+	}
+	return result
 }
 
 // containsAll checks if slice contains all items.

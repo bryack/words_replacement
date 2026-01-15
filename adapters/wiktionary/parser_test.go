@@ -23,8 +23,10 @@ func (pa *ParseAdapter) GetForms(word string) (singular, plural []string, err er
 }
 
 func TestRussianNounParser(t *testing.T) {
-
-	t.Run("first case", func(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping external API test")
+	}
+	t.Run("specification test", func(t *testing.T) {
 		russianNounParser := NewRussianNounParser()
 		parser := &ParseAdapter{
 			parser: russianNounParser,

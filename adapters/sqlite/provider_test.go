@@ -22,7 +22,7 @@ func setupSQLiteProvider(t *testing.T) *SQLiteFormsProvider {
 }
 
 func insertTestData(sfp *SQLiteFormsProvider) error {
-	query := `INSERT INTO word_forms (word, singular, plural) VALUES ('подделка', 'подделка', 'подделки')`
+	query := `INSERT INTO word_forms (word, singular_forms, plural_forms) VALUES ('подделка', '["подделка", "подделку"]', '["подделки"]')`
 	_, err := sfp.db.Exec(query)
 	if err != nil {
 		return fmt.Errorf("failed to insert into table: %w", err)
@@ -66,16 +66,16 @@ func TestDataBaseConnection(t *testing.T) {
 
 		var count int
 		var plural string
-		err = provider.db.QueryRow("SELECT COUNT(*), plural FROM word_forms WHERE word = 'подделка'").Scan(&count, &plural)
+		err = provider.db.QueryRow("SELECT COUNT(*), plural_forms FROM word_forms WHERE word = 'подделка'").Scan(&count, &plural)
 		assert.NoError(t, err)
 		assert.True(t, count > 0)
-		assert.Equal(t, "подделки", plural)
+		assert.Equal(t, `["подделки"]`, plural)
 	})
 }
 
 func TestGetForms(t *testing.T) {
 
-	t.Run("TestCase", func(t *testing.T) {
+	t.Run("returns forms for existing word", func(t *testing.T) {
 		provider := setupSQLiteProvider(t)
 		s, p, err := provider.GetForms("подделка")
 		assert.NoError(t, err)
@@ -93,10 +93,10 @@ func TestLoadFromJSONLFile(t *testing.T) {
 
 		var count int
 		var singular, plural string
-		err = provider.db.QueryRow("SELECT COUNT(*), singular, plural FROM word_forms WHERE word = 'подделка'").Scan(&count, &singular, &plural)
+		err = provider.db.QueryRow("SELECT COUNT(*), singular_forms, plural_forms FROM word_forms WHERE word = 'подделка'").Scan(&count, &singular, &plural)
 		assert.NoError(t, err)
 		assert.True(t, count > 0)
-		assert.Equal(t, "подделка", singular)
-		assert.Equal(t, "подделки", plural)
+		assert.Equal(t, `["подделка","подделку"]`, singular)
+		assert.Equal(t, `["подделки"]`, plural)
 	})
 }

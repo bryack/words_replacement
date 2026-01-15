@@ -8,20 +8,60 @@ import (
 	"github.com/alecthomas/assert/v2"
 )
 
-func TestExtractNominativeForms(t *testing.T) {
+func TestExtractTwoForms(t *testing.T) {
+	dataFromFile, err := os.ReadFile("fake.jsonl")
+	assert.NoError(t, err)
 
-	t.Run("extracts nominative forms from real JSONL", func(t *testing.T) {
-		data, err := os.ReadFile("fake.jsonl")
-		assert.NoError(t, err)
+	tests := []struct {
+		name         string
+		data         []byte
+		wantSingular []string
+		wantPlural   []string
+	}{
+		{
+			name:         "extracts nominative and accusative forms from real JSONL",
+			data:         dataFromFile,
+			wantSingular: []string{"подделка", "подделку"},
+			wantPlural:   []string{"подделки"},
+		},
+		{
+			name: "some empty forms and duplicate tags",
+			data: []byte(`{
+  "word": "подделка",
+  "forms": [
+	{"form": "", "tags": ["nominative", "singular"]},
+	{"form": "", "tags": ["accusative", "singular"]},
+	{"form": "", "tags": ["nominative", "plural"]},
+	{"form": "подде́лки", "tags": ["accusative", "plural"]},
+	{"form": "подде́лки", "tags": ["accusative", "plural"]}
+  ]
+}`),
+			wantSingular: []string{},
+			wantPlural:   []string{"подделки"},
+		},
+		{
+			name: "completely empty forms",
+			data: []byte(`{
+  "word": "подделка",
+  "forms": [
+  ]
+}`),
+			wantSingular: []string{},
+			wantPlural:   []string{},
+		},
+	}
 
-		var entry KaikkiEntry
-		err = json.Unmarshal(data, &entry)
-		assert.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var entry KaikkiEntry
+			err = json.Unmarshal(tt.data, &entry)
+			assert.NoError(t, err)
 
-		s, p := entry.ExtractNominativeForms()
-		assert.Equal(t, "подделка", s)
-		assert.Equal(t, "подделки", p)
-	})
+			s, p := entry.ExtractTwoForms()
+			assert.Equal(t, tt.wantSingular, s)
+			assert.Equal(t, tt.wantPlural, p)
+		})
+	}
 }
 
 func TestRemoveRussianStress(t *testing.T) {

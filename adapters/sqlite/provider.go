@@ -2,7 +2,7 @@ package sqlite
 
 import (
 	"database/sql"
-	"errors"
+	"encoding/json"
 	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -11,11 +11,11 @@ import (
 const (
 	createTableSQL = `CREATE TABLE IF NOT EXISTS word_forms (
         word TEXT PRIMARY KEY,
-        singular TEXT,
-        plural TEXT
+        singular_forms TEXT, -- JSON array: ["подделка", "подделку"]
+        plural_forms TEXT -- JSON array: ["подделки"]
     )`
-	insertWordSQL  = `INSERT INTO word_forms (word, singular, plural) VALUES (?, ?, ?)`
-	selectFormsSQL = `SELECT singular, plural FROM word_forms WHERE word = ?`
+	insertWordSQL  = `INSERT INTO word_forms (word, singular_forms, plural_forms) VALUES (?, ?, ?)`
+	selectFormsSQL = `SELECT singular_forms, plural_forms FROM word_forms WHERE word = ?`
 )
 
 type SQLiteFormsProvider struct {
@@ -61,11 +61,19 @@ func LoadFromJSONLFile(filepath string) DataLoader {
 		defer stmt.Close()
 
 		for _, entry := range entries {
-			s, p := entry.ExtractNominativeForms()
-			if s == "" && p == "" {
+			s, p := entry.ExtractTwoForms()
+			if len(s) == 0 && len(p) == 0 {
 				continue
 			}
-			_, err := stmt.Exec(entry.Word, s, p)
+			singularJSON, err := json.Marshal(s)
+			if err != nil {
+				return fmt.Errorf("failed to marshal %+v: %w", s, err)
+			}
+			pluralJSON, err := json.Marshal(p)
+			if err != nil {
+				return fmt.Errorf("failed to marshal %+v: %w", p, err)
+			}
+			_, err = stmt.Exec(entry.Word, string(singularJSON), string(pluralJSON))
 			if err != nil {
 				return fmt.Errorf("failed to insert word %q: %w", entry.Word, err)
 			}
@@ -78,18 +86,18 @@ func LoadFromJSONLFile(filepath string) DataLoader {
 }
 
 func (sfp *SQLiteFormsProvider) GetForms(word string) (singular, plural []string, err error) {
-	var sing, plur string
-	err = sfp.db.QueryRow(selectFormsSQL, word).Scan(&sing, &plur)
+	var singularJSON, pluralJSON string
+	err = sfp.db.QueryRow(selectFormsSQL, word).Scan(&singularJSON, &pluralJSON)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil, fmt.Errorf("not found")
-		} else {
-			return nil, nil, fmt.Errorf("failed to scan: %w", err)
-		}
+		return nil, nil, fmt.Errorf("failed to scan: %w", err)
 	}
 
-	singular = append(singular, sing)
-	plural = append(plural, plur)
+	if err := json.Unmarshal([]byte(singularJSON), &singular); err != nil {
+		return nil, nil, fmt.Errorf("failed to unmarshal %q: %w", singularJSON, err)
+	}
+	if err := json.Unmarshal([]byte(pluralJSON), &plural); err != nil {
+		return nil, nil, fmt.Errorf("failed to unmarshal %q: %w", pluralJSON, err)
+	}
 
 	return singular, plural, nil
 }
