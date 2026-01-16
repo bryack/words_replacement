@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 
 	"github.com/bryack/words/internal/replacer"
@@ -23,11 +22,10 @@ func (d *Driver) createReplacer() *replacer.Replacer {
 	return replacer.NewReplacer(d.Provider)
 }
 
-func (d *Driver) ReplaceWordsInFile(inputPath, outputPath string) error {
-	fsys := os.DirFS(RootDir)
-	data, err := fs.ReadFile(fsys, inputPath)
+func (d *Driver) ReplaceWordsInFile() error {
+	data, err := os.ReadFile(d.Input)
 	if err != nil {
-		return fmt.Errorf("failed to read file %s: %w", inputPath, err)
+		return fmt.Errorf("failed to read file %s: %w", d.Input, err)
 	}
 
 	replacer := d.createReplacer()
@@ -36,11 +34,11 @@ func (d *Driver) ReplaceWordsInFile(inputPath, outputPath string) error {
 		return err
 	}
 
-	return os.WriteFile(outputPath, []byte(repl), DefaultFilePermissions)
+	return os.WriteFile(d.Output, []byte(repl), DefaultFilePermissions)
 }
 
-func (d *Driver) ReadFile(path string) (string, error) {
-	data, err := os.ReadFile(path)
+func (d *Driver) ReadOutput() (string, error) {
+	data, err := os.ReadFile(d.Output)
 	if err != nil {
 		return "", err
 	}
