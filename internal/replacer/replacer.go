@@ -2,6 +2,7 @@ package replacer
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -22,6 +23,10 @@ func (r *Replacer) Replace(input, old, new string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to get forms of %s: %w", old, err)
 	}
+
+	sortSlices(sing)
+	sortSlices(plur)
+
 	result := input
 
 	for _, form := range plur {
@@ -32,4 +37,10 @@ func (r *Replacer) Replace(input, old, new string) (string, error) {
 		result = strings.ReplaceAll(result, form, new)
 	}
 	return result, err
+}
+
+func sortSlices(slice []string) {
+	sort.Slice(slice, func(i, j int) bool {
+		return len(slice[i]) > len(slice[j])
+	})
 }

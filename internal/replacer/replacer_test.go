@@ -19,8 +19,8 @@ func NewStubFormProvider() StubFormProvider {
 			plural   []string
 		}{
 			"подделка": {
-				singular: []string{"подделка", "подделку", "подделки"},
-				plural:   []string{"подделки", "подделок", "подделками"},
+				singular: []string{"подделка", "подделку", "подделки", "подделке", "подделкой", "подделкою"},
+				plural:   []string{"подделки", "подделок", "подделкам", "подделками", "подделках"},
 			},
 		},
 	}
@@ -72,6 +72,13 @@ func TestReplace(t *testing.T) {
 				old:   "подделка", // Пользователь вводит корень или базовую форму
 				new:   "fake",
 				want:  "Мы нашли fake и эти fakes нам не нравятся",
+			},
+			{
+				name:  "longer_form_not_corrupted_by_shorter",
+				input: "Он боролся с подделками и другим",
+				old:   "подделка",
+				new:   "fake",
+				want:  "Он боролся с fakes и другим", // Currently produces "fakesи"
 			},
 		}
 
