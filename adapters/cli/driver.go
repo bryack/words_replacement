@@ -11,11 +11,12 @@ const DefaultFilePermissions = 0644
 const RootDir = "."
 
 type Driver struct {
-	Input    string
-	Output   string
-	Old      string
-	New      string
-	Provider replacer.FormsProvider
+	Input          string
+	Output         string
+	Old            string
+	New            string
+	ExpectedOutput string
+	Provider       replacer.FormsProvider
 }
 
 func (d *Driver) createReplacer() *replacer.Replacer {
@@ -39,6 +40,14 @@ func (d *Driver) ReplaceWordsInFile() error {
 
 func (d *Driver) ReadOutput() (string, error) {
 	data, err := os.ReadFile(d.Output)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+func (d *Driver) ReadExpectedOutput() (string, error) {
+	data, err := os.ReadFile(d.ExpectedOutput)
 	if err != nil {
 		return "", err
 	}

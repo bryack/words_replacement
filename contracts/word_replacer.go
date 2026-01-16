@@ -9,6 +9,7 @@ import (
 type WordReplacerCLI interface {
 	ReplaceWordsInFile() error
 	ReadOutput() (string, error)
+	ReadExpectedOutput() (string, error)
 }
 
 func WordReplacerCLIContract(t testing.TB, replacer WordReplacerCLI) {
@@ -19,5 +20,9 @@ func WordReplacerCLIContract(t testing.TB, replacer WordReplacerCLI) {
 
 	output, err := replacer.ReadOutput()
 	assert.NoError(t, err)
-	assert.Contains(t, output, "fake")
+
+	expected, err := replacer.ReadExpectedOutput()
+	assert.NoError(t, err)
+
+	assert.Equal(t, output, expected)
 }
