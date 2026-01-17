@@ -69,7 +69,7 @@ func TestReplace(t *testing.T) {
 			{
 				name:  "inflection_support",
 				input: "Мы нашли подделку и эти подделки нам не нравятся",
-				old:   "подделка", // Пользователь вводит корень или базовую форму
+				old:   "подделка",
 				new:   "fake",
 				want:  "Мы нашли fake и эти fakes нам не нравятся",
 			},
@@ -78,8 +78,43 @@ func TestReplace(t *testing.T) {
 				input: "Он боролся с подделками и другим",
 				old:   "подделка",
 				new:   "fake",
-				want:  "Он боролся с fakes и другим", // Currently produces "fakesи"
+				want:  "Он боролся с fakes и другим",
 			},
+			{
+				name:  "word_with_exclamation",
+				input: "Это подделка!",
+				old:   "подделка",
+				new:   "fake",
+				want:  "Это fake!",
+			},
+			{
+				name:  "word_with_period",
+				input: "Это подделка.",
+				old:   "подделка",
+				new:   "fake",
+				want:  "Это fake.",
+			},
+			{
+				name:  "word_with_comma",
+				input: "Вот подделка, которую нашли",
+				old:   "подделка",
+				new:   "fake",
+				want:  "Вот fake, которую нашли",
+			},
+			// {
+			// 	name:  "should_not_replace_inside_word",
+			// 	input: "Это неподделка",
+			// 	old:   "подделка",
+			// 	new:   "fake",
+			// 	want:  "Это неподделка",
+			// },
+			// {
+			// 	name:  "word with upper-case letter",
+			// 	input: "Это ПодДелКа",
+			// 	old:   "подделка",
+			// 	new:   "fake",
+			// 	want:  "Это fake",
+			// },
 		}
 
 		for _, tt := range tests {
@@ -96,4 +131,39 @@ func TestReplace(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestReplaceWord(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		old   string
+		new   string
+		want  string
+	}{
+		{
+			name:  "replaces word surrounded by spaces",
+			input: "это подделка точно",
+			old:   "подделка",
+			new:   "fake",
+			want:  "это fake точно",
+		},
+		{
+			name:  "replace two matches",
+			input: "это подделка точно, и это подделка.",
+			old:   "подделка",
+			new:   "fake",
+			want:  "это fake точно, и это fake.",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := replaceWord(tt.input, tt.old, tt.new)
+			if got != tt.want {
+				t.Errorf("want %q, but got %q", tt.want, got)
+			}
+		})
+	}
+
 }

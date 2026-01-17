@@ -44,3 +44,28 @@ func sortSlices(slice []string) {
 		return len(slice[i]) > len(slice[j])
 	})
 }
+
+func replaceWord(text, old, new string) string {
+	runeText := []rune(text)
+	runeOld := []rune(old)
+	runeNew := []rune(new)
+	result := make([]rune, 0)
+
+	for i := 0; i <= len(runeText)-len(runeOld); i++ {
+		match := true
+		for j := 0; j < len(runeOld); j++ {
+			if runeText[i+j] != runeOld[j] {
+				match = false
+				break
+			}
+		}
+
+		if match {
+			result = append(result, runeText[:i]...)
+			result = append(result, runeNew...)
+			result = append(result, runeText[i+len(runeOld):]...)
+		}
+
+	}
+	return string(result)
+}
