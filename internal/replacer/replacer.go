@@ -48,24 +48,38 @@ func sortSlices(slice []string) {
 func replaceWord(text, old, new string) string {
 	runeText := []rune(text)
 	runeOld := []rune(old)
-	runeNew := []rune(new)
-	result := make([]rune, 0)
 
-	for i := 0; i <= len(runeText)-len(runeOld); i++ {
-		match := true
-		for j := 0; j < len(runeOld); j++ {
-			if runeText[i+j] != runeOld[j] {
-				match = false
-				break
+	var builder strings.Builder
+	i := 0
+	for i < len(runeText) {
+		if i <= len(runeText)-len(runeOld) && matchesAt(runeText, i, runeOld) {
+			leftOK := i == 0 || !isCyrillic(runeText[i-1])
+			rightOK := i+len(runeOld) >= len(runeText) || !isCyrillic(runeText[i+len(runeOld)])
+			if leftOK && rightOK {
+				builder.WriteString(new)
+				i += len(runeOld)
+				continue
 			}
 		}
-
-		if match {
-			result = append(result, runeText[:i]...)
-			result = append(result, runeNew...)
-			result = append(result, runeText[i+len(runeOld):]...)
-		}
-
+		builder.WriteRune(runeText[i])
+		i++
 	}
-	return string(result)
+	return builder.String()
+}
+
+func matchesAt(runes []rune, pos int, pattern []rune) bool {
+	if pos+len(pattern) > len(runes) {
+		return false
+	}
+
+	for j := 0; j < len(pattern); j++ {
+		if runes[pos+j] != pattern[j] {
+			return false
+		}
+	}
+	return true
+}
+
+func isCyrillic(r rune) bool {
+	return (r >= 'а' && r <= 'я') || (r >= 'А' && r <= 'Я') || r == 'ё' || r == 'Ё'
 }

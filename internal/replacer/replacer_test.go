@@ -150,10 +150,17 @@ func TestReplaceWord(t *testing.T) {
 		},
 		{
 			name:  "replace two matches",
-			input: "это подделка точно, и это подделка.",
+			input: "это подделка точно, подделка.",
 			old:   "подделка",
 			new:   "fake",
-			want:  "это fake точно, и это fake.",
+			want:  "это fake точно, fake.",
+		},
+		{
+			name:  "does not replace inside word",
+			input: "это неподделка точно, вон та - подделка.",
+			old:   "подделка",
+			new:   "fake",
+			want:  "это неподделка точно, вон та - fake.",
 		},
 	}
 
