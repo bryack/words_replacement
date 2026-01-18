@@ -40,6 +40,9 @@ func (r *Replacer) Replace(input, old, new string) (string, error) {
 func replaceRussianWord(text, old, new string) string {
 	runeText := []rune(text)
 	runeOld := []rune(old)
+	if len(runeOld) > len(runeText) {
+		return text
+	}
 
 	var builder strings.Builder
 	builder.Grow(len(text))

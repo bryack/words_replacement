@@ -2,6 +2,7 @@ package replacer
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -177,5 +178,45 @@ func TestReplaceWord(t *testing.T) {
 			}
 		})
 	}
+}
 
+func BenchmarkReplaceRussianWord(b *testing.B) {
+	text := "Это подделка точно, вон та - подделка-то. Мы нашли подделку и эти подделки нам не нравятся."
+	old := "подделка"
+	new := "fake"
+
+	for b.Loop() {
+		replaceRussianWord(text, old, new)
+	}
+}
+
+func BenchmarkReplaceRussianWordNoMatches(b *testing.B) {
+	text := "Это точно фальшивка, вон та — фальшивка-то. Мы нашли фальшивку и эти фальшивки нам не нравятся."
+	old := "подделка"
+	new := "fake"
+
+	for b.Loop() {
+		replaceRussianWord(text, old, new)
+	}
+}
+
+func BenchmarkReplaceRussianWordManyMatches(b *testing.B) {
+	text := strings.Repeat("подделка", 100)
+	old := "подделка"
+	new := "fake"
+	b.ResetTimer()
+
+	for b.Loop() {
+		replaceRussianWord(text, old, new)
+	}
+}
+
+func BenchmarkReplace(b *testing.B) {
+	stub := NewStubFormProvider()
+	replacer := NewReplacer(stub)
+	input := "Это подделка точно, вон та - подделка-то. Мы нашли подделку и эти подделки нам не нравятся."
+
+	for b.Loop() {
+		replacer.Replace(input, "подделка", "fake")
+	}
 }
