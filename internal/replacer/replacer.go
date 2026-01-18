@@ -2,9 +2,10 @@ package replacer
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 )
+
+const pluralSuffix = "s"
 
 type FormsProvider interface {
 	GetForms(word string) (singular, plural []string, err error)
@@ -24,32 +25,24 @@ func (r *Replacer) Replace(input, old, new string) (string, error) {
 		return "", fmt.Errorf("failed to get forms of %s: %w", old, err)
 	}
 
-	sortSlices(sing)
-	sortSlices(plur)
-
 	result := input
 
 	for _, form := range plur {
-		result = strings.ReplaceAll(result, form, new+"s")
+		result = replaceRussianWord(result, form, new+pluralSuffix)
 	}
 
 	for _, form := range sing {
-		result = strings.ReplaceAll(result, form, new)
+		result = replaceRussianWord(result, form, new)
 	}
-	return result, err
+	return result, nil
 }
 
-func sortSlices(slice []string) {
-	sort.Slice(slice, func(i, j int) bool {
-		return len(slice[i]) > len(slice[j])
-	})
-}
-
-func replaceWord(text, old, new string) string {
+func replaceRussianWord(text, old, new string) string {
 	runeText := []rune(text)
 	runeOld := []rune(old)
 
 	var builder strings.Builder
+	builder.Grow(len(text))
 	i := 0
 	for i < len(runeText) {
 		if i <= len(runeText)-len(runeOld) && matchesAt(runeText, i, runeOld) {
@@ -73,7 +66,7 @@ func matchesAt(runes []rune, pos int, pattern []rune) bool {
 	}
 
 	for j := 0; j < len(pattern); j++ {
-		if runes[pos+j] != pattern[j] {
+		if !equalFoldRune(runes[pos+j], pattern[j]) {
 			return false
 		}
 	}
@@ -82,4 +75,8 @@ func matchesAt(runes []rune, pos int, pattern []rune) bool {
 
 func isCyrillic(r rune) bool {
 	return (r >= 'а' && r <= 'я') || (r >= 'А' && r <= 'Я') || r == 'ё' || r == 'Ё'
+}
+
+func equalFoldRune(rune1, rune2 rune) bool {
+	return strings.EqualFold(string(rune1), string(rune2))
 }
