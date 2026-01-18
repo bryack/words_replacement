@@ -16,6 +16,7 @@ const (
     )`
 	insertWordSQL  = `INSERT INTO word_forms (word, singular_forms, plural_forms) VALUES (?, ?, ?)`
 	selectFormsSQL = `SELECT singular_forms, plural_forms FROM word_forms WHERE word = ?`
+	countRowsSQL   = "SELECT COUNT(*) FROM word_forms"
 )
 
 type SQLiteFormsProvider struct {
@@ -56,7 +57,7 @@ func NewSQLiteFormsProvider(dbPath string, loader DataLoader) (*SQLiteFormsProvi
 
 func (sfp *SQLiteFormsProvider) needsLoading() (bool, error) {
 	var count int
-	err := sfp.db.QueryRow("SELECT COUNT(*) FROM word_forms").Scan(&count)
+	err := sfp.db.QueryRow(countRowsSQL).Scan(&count)
 	if err != nil {
 		return false, fmt.Errorf("failed to scan: %w", err)
 	}
@@ -124,9 +125,6 @@ func (sfp *SQLiteFormsProvider) GetForms(word string) (singular, plural []string
 }
 
 func (sfp *SQLiteFormsProvider) initDataBase() error {
-	if sfp.dbPath == "" {
-		return fmt.Errorf("database path cannot be empty")
-	}
 	db, err := sql.Open("sqlite3", sfp.dbPath)
 	if err != nil {
 		return fmt.Errorf("failed to open db: %w", err)
@@ -137,8 +135,7 @@ func (sfp *SQLiteFormsProvider) initDataBase() error {
 }
 
 func (sfp *SQLiteFormsProvider) createTable() error {
-	query := createTableSQL
-	_, err := sfp.db.Exec(query)
+	_, err := sfp.db.Exec(createTableSQL)
 	if err != nil {
 		return fmt.Errorf("failed to create table: %w", err)
 	}
@@ -147,7 +144,7 @@ func (sfp *SQLiteFormsProvider) createTable() error {
 
 func (sfp *SQLiteFormsProvider) Close() error {
 	if sfp.db != nil {
-		sfp.db.Close()
+		return sfp.db.Close()
 	}
 	return nil
 }
