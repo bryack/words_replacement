@@ -18,6 +18,7 @@ func TestWordReplacerCLIContract(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to create provider: %v", err)
 		}
+		defer provider.Close()
 
 		driver := &Driver{
 			Input:          input,

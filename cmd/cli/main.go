@@ -18,6 +18,8 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+	defer provider.Close()
+
 	wordReplacer := replacer.NewReplacer(provider)
 
 	app := cli.NewCLI(os.Stdin, os.Stdout, wordReplacer)

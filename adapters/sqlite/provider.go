@@ -144,3 +144,10 @@ func (sfp *SQLiteFormsProvider) createTable() error {
 	}
 	return nil
 }
+
+func (sfp *SQLiteFormsProvider) Close() error {
+	if sfp.db != nil {
+		sfp.db.Close()
+	}
+	return nil
+}
