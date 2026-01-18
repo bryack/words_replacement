@@ -13,7 +13,8 @@ func TestWordReplacerCLIContract(t *testing.T) {
 		input := "testdata/input.md"
 		output := "testdata/output.md"
 		expected := "testdata/expected_output.md"
-		provider, err := sqlite.NewSQLiteFormsProvider(sqlite.LoadFromJSONLFile("../../adapters/sqlite/fake.jsonl"))
+		dbPath := "testdata/testDB.db"
+		provider, err := sqlite.NewSQLiteFormsProvider(dbPath, sqlite.LoadFromJSONLFile("../../adapters/sqlite/fake.jsonl"))
 		if err != nil {
 			t.Fatalf("failed to create provider: %v", err)
 		}

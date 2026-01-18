@@ -10,9 +10,10 @@ import (
 )
 
 const JSONLDataPath = "../../adapters/sqlite/fake.jsonl"
+const dbPath = "../../adapters/cli/testdata/testDB.db"
 
 func main() {
-	provider, err := sqlite.NewSQLiteFormsProvider(sqlite.LoadFromJSONLFile(JSONLDataPath))
+	provider, err := sqlite.NewSQLiteFormsProvider(dbPath, sqlite.LoadFromJSONLFile(JSONLDataPath))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)

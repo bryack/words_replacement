@@ -19,14 +19,20 @@ const (
 )
 
 type SQLiteFormsProvider struct {
-	db *sql.DB
+	db     *sql.DB
+	dbPath string
 }
 
 // DataLoader defines a function that loads word forms into the database.
 type DataLoader func(sfp *SQLiteFormsProvider) error
 
-func NewSQLiteFormsProvider(loader DataLoader) (*SQLiteFormsProvider, error) {
-	provider := &SQLiteFormsProvider{}
+func NewSQLiteFormsProvider(dbPath string, loader DataLoader) (*SQLiteFormsProvider, error) {
+	if dbPath == "" {
+		return nil, fmt.Errorf("database path cannot be empty")
+	}
+	provider := &SQLiteFormsProvider{
+		dbPath: dbPath,
+	}
 	err := provider.initDataBase()
 	if err != nil {
 		return nil, fmt.Errorf("failed to init db: %w", err)
@@ -35,11 +41,26 @@ func NewSQLiteFormsProvider(loader DataLoader) (*SQLiteFormsProvider, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create table: %w", err)
 	}
-	err = loader(provider)
+	isNeeded, err := provider.needsLoading()
 	if err != nil {
-		return nil, fmt.Errorf("failed to load data to db: %w", err)
+		return nil, fmt.Errorf("failed to check database %s: %w", dbPath, err)
+	}
+	if isNeeded {
+		err = loader(provider)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load data to db: %w", err)
+		}
 	}
 	return provider, nil
+}
+
+func (sfp *SQLiteFormsProvider) needsLoading() (bool, error) {
+	var count int
+	err := sfp.db.QueryRow("SELECT COUNT(*) FROM word_forms").Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("failed to scan: %w", err)
+	}
+	return count == 0, nil
 }
 
 func LoadFromJSONLFile(filepath string) DataLoader {
@@ -103,7 +124,10 @@ func (sfp *SQLiteFormsProvider) GetForms(word string) (singular, plural []string
 }
 
 func (sfp *SQLiteFormsProvider) initDataBase() error {
-	db, err := sql.Open("sqlite3", ":memory:")
+	if sfp.dbPath == "" {
+		return fmt.Errorf("database path cannot be empty")
+	}
+	db, err := sql.Open("sqlite3", sfp.dbPath)
 	if err != nil {
 		return fmt.Errorf("failed to open db: %w", err)
 	}

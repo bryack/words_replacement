@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 
 	"github.com/bryack/words/specifications"
@@ -10,11 +11,15 @@ import (
 
 func setupSQLiteProvider(t *testing.T) *SQLiteFormsProvider {
 	t.Helper()
-	provider, err := NewSQLiteFormsProvider(insertTestData)
-	assert.NoError(t, err)
+	tempDir := t.TempDir()
+	dbPath := filepath.Join(tempDir, "testDB.db")
+	provider, err := NewSQLiteFormsProvider(dbPath, insertTestData)
+	if err != nil {
+		t.Fatalf("Failed to create provider: %v", err)
+	}
 
 	t.Cleanup(func() {
-		if provider.db != nil {
+		if provider != nil && provider.db != nil {
 			provider.db.Close()
 		}
 	})
@@ -52,27 +57,6 @@ func TestSQLiteFormsProvider(t *testing.T) {
 	})
 }
 
-func TestDataBaseConnection(t *testing.T) {
-	t.Run("DB insert", func(t *testing.T) {
-		provider := &SQLiteFormsProvider{}
-		err := provider.initDataBase()
-		assert.NoError(t, err)
-
-		err = provider.createTable()
-		assert.NoError(t, err)
-
-		err = insertTestData(provider)
-		assert.NoError(t, err)
-
-		var count int
-		var plural string
-		err = provider.db.QueryRow("SELECT COUNT(*), plural_forms FROM word_forms WHERE word = 'подделка'").Scan(&count, &plural)
-		assert.NoError(t, err)
-		assert.True(t, count > 0)
-		assert.Equal(t, `["подделки","подделок","подделкам","подделками","подделках"]`, plural)
-	})
-}
-
 func TestGetForms(t *testing.T) {
 
 	t.Run("returns forms for existing word", func(t *testing.T) {
@@ -86,10 +70,14 @@ func TestGetForms(t *testing.T) {
 
 func TestLoadFromJSONLFile(t *testing.T) {
 	t.Run("loads data from JSONL file into database", func(t *testing.T) {
+		tempDir := t.TempDir()
+		dbPath := filepath.Join(tempDir, "testDB.db")
 		filepath := "fake.jsonl"
 		loader := LoadFromJSONLFile(filepath)
-		provider, err := NewSQLiteFormsProvider(loader)
-		assert.NoError(t, err)
+		provider, err := NewSQLiteFormsProvider(dbPath, loader)
+		if err != nil {
+			t.Fatalf("Failed to create provider: %v", err)
+		}
 
 		var count int
 		var singular, plural string
@@ -98,5 +86,43 @@ func TestLoadFromJSONLFile(t *testing.T) {
 		assert.True(t, count > 0)
 		assert.Equal(t, `["подделка","подделку","подделки","подделке","подделкой","подделкою"]`, singular)
 		assert.Equal(t, `["подделки","подделок","подделкам","подделками","подделках"]`, plural)
+	})
+}
+
+func TestDatabasePersistence(t *testing.T) {
+	t.Run("acceptance test that verifies database persistence across provider instances", func(t *testing.T) {
+		tempDir := t.TempDir()
+		dbPath := filepath.Join(tempDir, "testDB.db")
+		provider, err := NewSQLiteFormsProvider(dbPath, insertTestData)
+		if err != nil {
+			t.Fatalf("Failed to create provider: %v", err)
+		}
+
+		s, _, err := provider.GetForms("подделка")
+		assert.NoError(t, err)
+		assert.Contains(t, s, "подделка")
+
+		t.Cleanup(func() {
+			if provider != nil && provider.db != nil {
+				provider.db.Close()
+			}
+		})
+
+		provider2, err := NewSQLiteFormsProvider(dbPath, insertTestData)
+		if err != nil {
+			t.Fatalf("Failed to create provider: %v", err)
+		}
+
+		s2, _, err := provider2.GetForms("подделка")
+		assert.NoError(t, err)
+		assert.Contains(t, s2, "подделка")
+		assert.Equal(t, s, s2)
+
+		t.Cleanup(func() {
+			if provider != nil && provider2.db != nil {
+				provider2.db.Close()
+			}
+		})
+
 	})
 }
