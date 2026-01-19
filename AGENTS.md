@@ -7,11 +7,14 @@ This file provides context and instructions for AI coding agents working on the 
 Words is a Go CLI application implementing hexagonal architecture for intelligent word form replacement. It demonstrates clean architecture principles with dependency injection, interface-driven design, comprehensive testing strategies, and production-ready data integration with SQLite and Kaikki.org linguistic datasets.
 
 **Current Implementation Status:**
-- ✅ SQLite database integration with in-memory storage
-- ✅ Kaikki.org JSONL data loading and parsing
-- ✅ Nominative form extraction with stress mark removal
-- ✅ DataLoader pattern for flexible data sources
+- ✅ SQLite database integration with persistent file-based storage
+- ✅ Kaikki.org JSONL data loading and parsing with smart loading detection
+- ✅ Multi-case form extraction (nominative, accusative, genitive, dative, instrumental, prepositional)
+- ✅ Unicode-aware word replacement with Cyrillic boundary detection
+- ✅ Stress mark removal for consistent Russian text matching
+- ✅ DataLoader pattern for flexible data sources with persistent database
 - ✅ ATDD methodology with acceptance tests as north-star
+- ✅ Comprehensive benchmarking for performance optimization
 - ✅ Fast unit tests with test data, integration tests with real JSONL
 - ⚠️ MediaWiki API integration (external service may return 403)
 
@@ -81,8 +84,11 @@ gofmt -w .
 - `adapters/` - External interface implementations
   - `adapters/sqlite/` - SQLite database provider with JSONL data loading
     - `models.go` - JSONL data structures (KaikkiEntry, WordForm)
-    - `extractor.go` - Form extraction logic with stress mark removal
+    - `models_test.go` - Models unit tests
+    - `extractor.go` - Multi-case form extraction with stress removal
+    - `extractor_test.go` - Extractor unit tests
     - `loader.go` - JSONL file parsing
+    - `loader_test.go` - Loader unit tests
     - `provider.go` - SQLite forms provider with DataLoader pattern
   - `adapters/wiktionary/` - MediaWiki API client
   - `adapters/cli/` - CLI driver for file operations

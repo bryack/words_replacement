@@ -6,9 +6,10 @@ A Go CLI application for intelligent word form replacement implementing hexagona
 
 - **Intelligent Word Replacement**: Context-aware nominative form transformations for Russian nouns
 - **Clean Architecture**: Hexagonal architecture with dependency injection and interface-driven design
-- **SQLite Database**: In-memory database for fast word form lookups
+- **SQLite Database**: Persistent file-based database for fast word form lookups
 - **Kaikki.org Integration**: Production linguistic data from Kaikki.org JSONL dictionary
 - **Multiple Data Sources**: Support for SQLite, MediaWiki API, and custom providers
+- **Unicode-Aware Processing**: Handles Cyrillic text boundaries and stress mark removal
 - **Comprehensive Testing**: Unit, integration, and acceptance test coverage with ATDD methodology
 - **CLI Interface**: Command-line tool with proper error handling
 
@@ -42,9 +43,9 @@ The project demonstrates hexagonal architecture principles:
 
 The application uses Kaikki.org JSONL dictionary data:
 - Parses Russian noun entries from JSONL format
-- Extracts nominative singular and plural forms
+- Extracts multiple grammatical cases (nominative, accusative, genitive, dative, instrumental, prepositional)
 - Removes stress marks for consistent matching
-- Loads data into in-memory SQLite database at startup
+- Loads data into persistent SQLite database with smart loading detection
 
 ## Development
 
