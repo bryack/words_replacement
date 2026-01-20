@@ -22,7 +22,7 @@ func NewReplacer(fp FormsProvider) *Replacer {
 func (r *Replacer) Replace(input, old, new string) (string, error) {
 	sing, plur, err := r.provider.GetForms(old)
 	if err != nil {
-		return "", fmt.Errorf("failed to get forms of %s: %w", old, err)
+		return "", fmt.Errorf("failed to get forms of %q: %w", old, err)
 	}
 
 	result := input

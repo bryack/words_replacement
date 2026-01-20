@@ -2,8 +2,12 @@ package cli
 
 import (
 	"bytes"
+	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/alecthomas/assert/v2"
+	"github.com/bryack/words/testhelpers"
 )
 
 type SpyWordReplacer struct {
@@ -20,8 +24,8 @@ func (swr *SpyWordReplacer) Replace(text, oldWord, newWord string) (string, erro
 	return swr.result, swr.err
 }
 
-func TestHello(t *testing.T) {
-	t.Run("TestCase", func(t *testing.T) {
+func TestCLI_Run(t *testing.T) {
+	t.Run("replaces words using injected replacer with stdin input", func(t *testing.T) {
 		input := "Требования к тестам: HTTP-тесты используют ту же подделку"
 		want := "Требования к тестам: HTTP-тесты используют ту же fake"
 		spyReplacer := &SpyWordReplacer{
@@ -58,4 +62,27 @@ func TestHello(t *testing.T) {
 
 func TestCLI_RunWithFiles(t *testing.T) {
 
+	tempDir := t.TempDir()
+	inputFile := filepath.Join(tempDir, "test.md")
+	dataFile := filepath.Join(tempDir, "data.jsonl")
+
+	testhelpers.CreateTestFiles(t, inputFile)
+	testhelpers.CreateTestJSONLFile(t, dataFile)
+
+	spyReplacer := &SpyWordReplacer{
+		result: "expected result",
+	}
+	in := strings.NewReader("")
+	out := &bytes.Buffer{}
+	cli := NewCLI(in, out, spyReplacer)
+
+	err := cli.RunWithFiles(inputFile, dataFile, "подделка", "fake")
+	if err != nil {
+		t.Fatalf("expected no error, but got %v", err)
+	}
+	assert.Equal(t, "expected result", out.String())
+	assert.True(t, spyReplacer.called)
+	assert.Equal(t, "подделка", spyReplacer.gotOld)
+	assert.Equal(t, "fake", spyReplacer.gotNew)
+	assert.Contains(t, spyReplacer.gotText, "подделка")
 }

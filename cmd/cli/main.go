@@ -24,8 +24,10 @@ func main() {
 
 	app := cli.NewCLI(os.Stdin, os.Stdout, wordReplacer)
 
-	if err := app.Run(os.Args[1:]); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+	rootCmd := cli.NewRootCommand()
+	rootCmd.AddCommand(cli.NewReplaceCommand(app))
+
+	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }

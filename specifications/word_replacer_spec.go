@@ -12,6 +12,7 @@ func WordReplacerSpecification(t testing.TB, replacer WordReplacer) {
 	tests := []struct {
 		name      string
 		text      string
+		data      string
 		oldWord   string
 		newWord   string
 		want      string
@@ -68,4 +69,5 @@ func WordReplacerSpecification(t testing.TB, replacer WordReplacer) {
 			t.Errorf("%s:\nwant %q\ngot %q", tt.name, tt.want, got)
 		}
 	}
+
 }
