@@ -55,3 +55,7 @@ func TestHello(t *testing.T) {
 		}
 	})
 }
+
+func TestCLI_RunWithFiles(t *testing.T) {
+
+}
