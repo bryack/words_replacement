@@ -3,6 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -111,6 +112,9 @@ func (sfp *SQLiteFormsProvider) GetForms(word string) (singular, plural []string
 	var singularJSON, pluralJSON string
 	err = sfp.db.QueryRow(selectFormsSQL, word).Scan(&singularJSON, &pluralJSON)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil, fmt.Errorf("word %q not found in database: %w", word, err)
+		}
 		return nil, nil, fmt.Errorf("failed to scan: %w", err)
 	}
 

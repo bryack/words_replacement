@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"database/sql"
 	"fmt"
 	"path/filepath"
 	"testing"
@@ -65,6 +66,11 @@ func TestGetForms(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Contains(t, s, "подделка")
 		assert.Contains(t, p, "подделки")
+	})
+	t.Run("returns error for nonexisting word", func(t *testing.T) {
+		provider := setupSQLiteProvider(t)
+		_, _, err := provider.GetForms("несуществующееслово")
+		assert.ErrorIs(t, err, sql.ErrNoRows)
 	})
 }
 
