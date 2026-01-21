@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"bytes"
-	"strings"
 	"testing"
 )
 
@@ -14,12 +12,7 @@ func TestRootCommand(t *testing.T) {
 }
 
 func TestReplaceCommand_Flags(t *testing.T) {
-	spyReplacer := &SpyWordReplacer{}
-	in := strings.NewReader("")
-	out := &bytes.Buffer{}
-	cli := NewCLI(in, out, spyReplacer)
-
-	cmd := NewReplaceCommand(cli)
+	cmd := NewReplaceCommand()
 
 	inputFlag := cmd.Flags().Lookup("input")
 	if inputFlag == nil {

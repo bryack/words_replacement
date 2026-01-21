@@ -7,15 +7,15 @@ This file provides context and instructions for AI coding agents working on the 
 Words is a Go CLI application implementing hexagonal architecture for intelligent word form replacement. It demonstrates clean architecture principles with dependency injection, interface-driven design, comprehensive testing strategies, and production-ready data integration with SQLite and Kaikki.org linguistic datasets.
 
 **Current Implementation Status:**
-- ✅ SQLite database integration with persistent file-based storage
-- ✅ Kaikki.org JSONL data loading and parsing with smart loading detection
+- ✅ SQLite database integration with persistent file-based storage and DataLoader pattern
+- ✅ Kaikki.org JSONL data loading (334MB+ Russian noun dataset) with smart loading detection
 - ✅ Multi-case form extraction (nominative, accusative, genitive, dative, instrumental, prepositional)
-- ✅ Unicode-aware word replacement with Cyrillic boundary detection
-- ✅ Stress mark removal for consistent Russian text matching
-- ✅ DataLoader pattern for flexible data sources with persistent database
-- ✅ ATDD methodology with acceptance tests as north-star
+- ✅ Unicode-aware word replacement with Cyrillic boundary detection and stress mark removal
+- ✅ Cobra CLI framework with flag-based configuration (--input, --data, --old, --new)
+- ✅ FormsProvider interface with SQLite and Wiktionary implementations
+- ✅ ATDD methodology with acceptance tests using binary execution
 - ✅ Comprehensive benchmarking for performance optimization
-- ✅ Fast unit tests with test data, integration tests with real JSONL
+- ✅ Contract-based testing with WordReplacerCLI interface
 - ⚠️ MediaWiki API integration (external service may return 403)
 
 ## Build and Test Commands
@@ -74,27 +74,31 @@ gofmt -w .
 
 - Go version 1.25.5 required
 - Module: `github.com/bryack/words`
-- Dependencies: `github.com/alecthomas/assert/v2` for testing, `github.com/mattn/go-sqlite3` for database operations
+- Dependencies: 
+  - `github.com/alecthomas/assert/v2` for enhanced test assertions
+  - `github.com/mattn/go-sqlite3` for SQLite database operations
+  - `github.com/spf13/cobra` for CLI framework
 - Target platform: Linux (primary), cross-platform compatible
 
 ## Project Structure
 
-- `cmd/cli/` - CLI application entry point and acceptance tests
+- `cmd/cli/` - CLI application entry point with main.go and acceptance tests
 - `internal/` - Core business logic (private packages)
+  - `internal/cli/` - CLI implementation with Cobra commands and CLI struct
+  - `internal/replacer/` - Word replacement logic with FormsProvider interface
 - `adapters/` - External interface implementations
-  - `adapters/sqlite/` - SQLite database provider with JSONL data loading
+  - `adapters/sqlite/` - SQLite database provider with JSONL data loading and DataLoader pattern
     - `models.go` - JSONL data structures (KaikkiEntry, WordForm)
-    - `models_test.go` - Models unit tests
     - `extractor.go` - Multi-case form extraction with stress removal
-    - `extractor_test.go` - Extractor unit tests
-    - `loader.go` - JSONL file parsing
-    - `loader_test.go` - Loader unit tests
-    - `provider.go` - SQLite forms provider with DataLoader pattern
-  - `adapters/wiktionary/` - MediaWiki API client
-  - `adapters/cli/` - CLI driver for file operations
-- `contracts/` - Interface definitions and ports
-- `specifications/` - Behavior-driven specifications
-- `wiki/` - MediaWiki API client package
+    - `loader.go` - JSONL file parsing with LoadFromJSONL function
+    - `provider.go` - SQLiteFormsProvider with persistent database
+  - `adapters/wiktionary/` - MediaWiki API client with provider and parser
+  - `adapters/cli/` - CLI driver implementing WordReplacerCLI interface
+  - `adapters/acceptance/` - Acceptance test driver implementing WordReplacer interface
+- `contracts/` - Interface definitions (WordReplacerCLI) and contract tests
+- `specifications/` - Behavior-driven specifications (WordReplacer, WiktionaryFormsProvider)
+- `testhelpers/` - Test utility functions for file operations
+- `wiki/` - MediaWiki API client package with WikiClient
 - `.kiro/steering/` - AI agent steering documents
 
 ## Security Considerations

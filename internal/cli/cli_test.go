@@ -78,7 +78,7 @@ func TestCLI_RunWithFiles(t *testing.T) {
 		out := &bytes.Buffer{}
 		cli := NewCLI(in, out, spyReplacer)
 
-		err = cli.RunWithFiles(inputFile, "", "подделка", "fake")
+		err = cli.RunWithFiles(inputFile, "подделка", "fake")
 		if err != nil {
 			t.Fatalf("expected no error, but got %v", err)
 		}

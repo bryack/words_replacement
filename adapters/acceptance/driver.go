@@ -20,13 +20,18 @@ func (d *Driver) Replace(text, oldWord, newWord string) (string, error) {
 	if err := os.WriteFile(inputFile, []byte(text), 0644); err != nil {
 		return "", fmt.Errorf("failed to create file %s: %w", inputFile, err)
 	}
-
-	cmd := exec.Command(d.BinaryPath, "replace",
+	args := []string{
+		"replace",
 		"--input", inputFile,
-		"--data", d.DataFile,
 		"--old", oldWord,
 		"--new", newWord,
-	)
+	}
+
+	if d.DataFile != "" {
+		args = append(args, "--data", d.DataFile)
+	}
+
+	cmd := exec.Command(d.BinaryPath, args...)
 
 	var out bytes.Buffer
 	cmd.Stdout = &out

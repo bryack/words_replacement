@@ -40,15 +40,13 @@ func (cli *CLI) Run(args []string) error {
 	return nil
 }
 
-func (cli *CLI) RunWithFiles(inputFile, dataFile, oldWord, newWord string) error {
+func (cli *CLI) RunWithFiles(inputFile, oldWord, newWord string) error {
 	content, err := os.ReadFile(inputFile)
 	if err != nil {
 		return err
 	}
 
-	var result string
-
-	result, err = cli.r.Replace(string(content), oldWord, newWord)
+	result, err := cli.r.Replace(string(content), oldWord, newWord)
 	if err != nil {
 		return err
 	}

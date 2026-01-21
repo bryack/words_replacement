@@ -4,14 +4,14 @@ A Go CLI application for intelligent word form replacement implementing hexagona
 
 ## Features
 
-- **Intelligent Word Replacement**: Context-aware nominative form transformations for Russian nouns
-- **Clean Architecture**: Hexagonal architecture with dependency injection and interface-driven design
-- **SQLite Database**: Persistent file-based database for fast word form lookups
-- **Kaikki.org Integration**: Production linguistic data from Kaikki.org JSONL dictionary
-- **Multiple Data Sources**: Support for SQLite, MediaWiki API, and custom providers
-- **Unicode-Aware Processing**: Handles Cyrillic text boundaries and stress mark removal
-- **Comprehensive Testing**: Unit, integration, and acceptance test coverage with ATDD methodology
-- **CLI Interface**: Command-line tool with proper error handling
+- **Intelligent Word Replacement**: Context-aware Russian noun form transformations with multi-case support (nominative, accusative, genitive, dative, instrumental, prepositional)
+- **Clean Architecture**: Hexagonal architecture with dependency injection and FormsProvider interface
+- **SQLite Database**: Persistent file-based database with DataLoader pattern for fast word form lookups
+- **Kaikki.org Integration**: Production linguistic data from 334MB+ Kaikki.org JSONL dictionary
+- **Cobra CLI Framework**: Command-line interface with flag-based configuration (--input, --data, --old, --new)
+- **Multiple Data Sources**: Support for SQLite, MediaWiki API, and custom providers through FormsProvider interface
+- **Unicode-Aware Processing**: Handles Cyrillic text boundaries and automatic stress mark removal
+- **Comprehensive Testing**: Unit, integration, and acceptance test coverage with ATDD methodology and contract-based testing
 
 ## Installation
 
@@ -22,22 +22,28 @@ go build -o words ./cmd/cli
 ## Usage
 
 ```bash
-./words [options]
+# Replace word forms in a text file
+./words replace --input input.txt --old подделка --new fake
+
+# With custom data file
+./words replace --input input.txt --data custom.jsonl --old подделка --new fake
 ```
 
 ## Architecture
 
 The project demonstrates hexagonal architecture principles:
 
-- `cmd/cli/` - Application entry point and acceptance tests
-- `internal/` - Core business logic (replacer, cli)
+- `cmd/cli/` - Application entry point with main.go and acceptance tests
+- `internal/` - Core business logic (CLI struct, Replacer with FormsProvider interface)
 - `adapters/` - External interface implementations
-  - `adapters/sqlite/` - SQLite database provider with JSONL data loading
-  - `adapters/wiktionary/` - MediaWiki API client
-  - `adapters/cli/` - CLI driver for file operations
-- `contracts/` - Interface definitions and ports
-- `specifications/` - Behavior-driven specifications
-- `wiki/` - MediaWiki API client integration
+  - `adapters/sqlite/` - SQLiteFormsProvider with DataLoader pattern and JSONL parsing
+  - `adapters/wiktionary/` - MediaWiki API client implementing FormsProvider
+  - `adapters/cli/` - CLI driver implementing WordReplacerCLI interface
+  - `adapters/acceptance/` - Acceptance test driver implementing WordReplacer interface
+- `contracts/` - Interface definitions (WordReplacerCLI) and contract tests
+- `specifications/` - Behavior-driven specifications (WordReplacer, WiktionaryFormsProvider)
+- `testhelpers/` - Test utility functions for file operations
+- `wiki/` - MediaWiki API client integration with WikiClient
 
 ## Data Sources
 
@@ -69,6 +75,7 @@ gofmt -w .
 - Go 1.25.5+
 - `github.com/alecthomas/assert/v2` (testing)
 - `github.com/mattn/go-sqlite3` (database)
+- `github.com/spf13/cobra` (CLI framework)
 
 ## License
 
