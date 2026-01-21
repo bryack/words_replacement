@@ -12,7 +12,6 @@ func WordReplacerSpecification(t testing.TB, replacer WordReplacer) {
 	tests := []struct {
 		name      string
 		text      string
-		data      string
 		oldWord   string
 		newWord   string
 		want      string

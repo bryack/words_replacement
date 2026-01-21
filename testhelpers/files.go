@@ -22,3 +22,12 @@ func CreateTestFiles(t *testing.T, inputFile string) {
 		t.Fatalf("failed to write file %s: %v", inputFile, err)
 	}
 }
+
+func CreateTestOutputFiles(t *testing.T, outputFile string) {
+	t.Helper()
+	data := []byte("Эта fake была настолько искусной, что никто не заподозрил fakes. Эксперту пришлось внимательно изучать fake, чтобы вынести вердикт fake. Он взял fake в руки и создал точную копию fake. Всё время он думал о fake. В мастерской обнаружили множество fakes. Без fakes коллекция выглядела бы подлинной. Детектив предоставил улики fakes и быстро нашёл все fakes. Он долго боролся с fakes и часто говорил о fakes. Это fake. Вот fake, которую нашли. fake! fake? Мы нашли fake-копию в архиве. Это неподделка.")
+	err := os.WriteFile(outputFile, data, 0644)
+	if err != nil {
+		t.Fatalf("failed to write file %s: %v", outputFile, err)
+	}
+}

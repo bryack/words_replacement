@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -45,9 +46,7 @@ func TestCLI_Run(t *testing.T) {
 
 		got := out.String()
 
-		if got != want {
-			t.Errorf("want %q, but got %q", want, got)
-		}
+		assert.Equal(t, want, got)
 
 		if spyReplacer.gotOld != "подделка" || spyReplacer.gotNew != "fake" {
 			t.Errorf("Replacer получил неверные аргументы: old=%q, new=%q",
@@ -61,28 +60,33 @@ func TestCLI_Run(t *testing.T) {
 }
 
 func TestCLI_RunWithFiles(t *testing.T) {
+	t.Run("without datafile", func(t *testing.T) {
+		tempDir := t.TempDir()
+		inputFile := filepath.Join(tempDir, "test.md")
+		outputFile := filepath.Join(tempDir, "output.md")
 
-	tempDir := t.TempDir()
-	inputFile := filepath.Join(tempDir, "test.md")
-	dataFile := filepath.Join(tempDir, "data.jsonl")
+		testhelpers.CreateTestFiles(t, inputFile)
+		testhelpers.CreateTestOutputFiles(t, outputFile)
+		output, err := os.ReadFile(outputFile)
+		if err != nil {
+			t.Fatalf("failed to read output file %q: %v", outputFile, err)
+		}
+		spyReplacer := &SpyWordReplacer{
+			result: string(output),
+		}
+		in := strings.NewReader("")
+		out := &bytes.Buffer{}
+		cli := NewCLI(in, out, spyReplacer)
 
-	testhelpers.CreateTestFiles(t, inputFile)
-	testhelpers.CreateTestJSONLFile(t, dataFile)
+		err = cli.RunWithFiles(inputFile, "", "подделка", "fake")
+		if err != nil {
+			t.Fatalf("expected no error, but got %v", err)
+		}
 
-	spyReplacer := &SpyWordReplacer{
-		result: "expected result",
-	}
-	in := strings.NewReader("")
-	out := &bytes.Buffer{}
-	cli := NewCLI(in, out, spyReplacer)
-
-	err := cli.RunWithFiles(inputFile, dataFile, "подделка", "fake")
-	if err != nil {
-		t.Fatalf("expected no error, but got %v", err)
-	}
-	assert.Equal(t, "expected result", out.String())
-	assert.True(t, spyReplacer.called)
-	assert.Equal(t, "подделка", spyReplacer.gotOld)
-	assert.Equal(t, "fake", spyReplacer.gotNew)
-	assert.Contains(t, spyReplacer.gotText, "подделка")
+		assert.Equal(t, string(output), out.String())
+		assert.True(t, spyReplacer.called)
+		assert.Equal(t, "подделка", spyReplacer.gotOld)
+		assert.Equal(t, "fake", spyReplacer.gotNew)
+		assert.Contains(t, spyReplacer.gotText, "подделка")
+	})
 }

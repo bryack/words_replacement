@@ -37,6 +37,10 @@ func TestWordReplacerSpecification(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	tempDir := t.TempDir()
+	dataFile := filepath.Join(tempDir, "test.jsonl")
+	testhelpers.CreateTestJSONLFile(t, dataFile)
+
 	// t.Cleanup выполнится только ПОСЛЕ того, как завершатся все t.Run ниже
 	t.Cleanup(func() {
 		err := os.RemoveAll(filepath.Dir(binaryPath))
@@ -45,17 +49,21 @@ func TestWordReplacerSpecification(t *testing.T) {
 		}
 	})
 
-	t.Run("should replace words in text", func(t *testing.T) {
-		tempDir := t.TempDir()
-		dataFile := filepath.Join(tempDir, "test.jsonl")
-		testhelpers.CreateTestJSONLFile(t, dataFile)
-
+	t.Run("with data file (initial load)", func(t *testing.T) {
 		driver := &acceptance.Driver{
 			BinaryPath: binaryPath,
 			DataFile:   dataFile,
 			TempDir:    tempDir,
 		}
 		specifications.WordReplacerSpecification(t, driver)
+	})
+	t.Run("without data file (persistent storage)", func(t *testing.T) {
+		driver2 := &acceptance.Driver{
+			BinaryPath: binaryPath,
+			TempDir:    tempDir,
+		}
+
+		specifications.WordReplacerSpecification(t, driver2)
 	})
 }
 

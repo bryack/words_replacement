@@ -43,10 +43,12 @@ func (cli *CLI) Run(args []string) error {
 func (cli *CLI) RunWithFiles(inputFile, dataFile, oldWord, newWord string) error {
 	content, err := os.ReadFile(inputFile)
 	if err != nil {
-		return fmt.Errorf("failed to read file %s: %w", inputFile, err)
+		return err
 	}
 
-	result, err := cli.r.Replace(string(content), oldWord, newWord)
+	var result string
+
+	result, err = cli.r.Replace(string(content), oldWord, newWord)
 	if err != nil {
 		return err
 	}

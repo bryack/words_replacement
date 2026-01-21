@@ -10,19 +10,28 @@ import (
 
 func TestFileHelpers(t *testing.T) {
 	tests := []struct {
-		name     string
-		filename string
-		helper   func(*testing.T, string)
+		name         string
+		filename     string
+		helper       func(*testing.T, string)
+		expectedWord string
 	}{
 		{
-			name:     "creates JSONL file with Russian test data",
-			filename: "test.jsonl",
-			helper:   CreateTestJSONLFile,
+			name:         "creates JSONL file with Russian test data",
+			filename:     "test.jsonl",
+			helper:       CreateTestJSONLFile,
+			expectedWord: "подделка",
 		},
 		{
-			name:     "creates input file with Russian test content",
-			filename: "test.md",
-			helper:   CreateTestFiles,
+			name:         "creates input file with Russian test content",
+			filename:     "test.md",
+			helper:       CreateTestFiles,
+			expectedWord: "подделка",
+		},
+		{
+			name:         "creates output file with Russian test content",
+			filename:     "test_ouput.md",
+			helper:       CreateTestOutputFiles,
+			expectedWord: "fake",
 		},
 	}
 
@@ -37,7 +46,7 @@ func TestFileHelpers(t *testing.T) {
 			assert.True(t, len(got) > 0, "file should not be empty")
 
 			content := string(got)
-			assert.Contains(t, content, "подделка", "should contain Russian test word")
+			assert.Contains(t, content, tt.expectedWord, "should contain Russian test word")
 		})
 	}
 }
