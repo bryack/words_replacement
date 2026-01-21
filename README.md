@@ -29,6 +29,32 @@ go build -o words ./cmd/cli
 ./words replace --input input.txt --data custom.jsonl --old подделка --new fake
 ```
 
+### Business Rule Examples
+
+**Core Replacement Logic:**
+```
+Input: "У меня есть подделка" 
+Command: ./words replace --input text.txt --old подделка --new fake
+Output: "У меня есть fake" 
+```
+
+**Error Handling:**
+```bash
+# Missing word in dictionary
+./words replace --input text.txt --old несуществующееслово --new fake
+# Returns: Error: word "несуществующееслово" not found in dictionary
+# No replacement performed - this is correct behavior
+```
+
+**Explicit Parameters (No Hardcoded Paths):**
+```bash
+# ✅ Correct: All inputs via flags
+./words replace --input /path/to/input.txt --data /path/to/data.jsonl --old word1 --new word2
+
+# ❌ Wrong: Hardcoded paths not supported
+./words replace word1 word2  # This won't work
+```
+
 ## Architecture
 
 The project demonstrates hexagonal architecture principles:

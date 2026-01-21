@@ -70,6 +70,20 @@ gofmt -w .
 - Test error conditions and edge cases
 - Aim for high test coverage of public functions
 
+## Business Rule Compliance
+
+### Testability Requirements
+| Rule | Implementation | Verification |
+|------|----------------|--------------|
+| **Black-box CLI Testing** | Acceptance tests execute binary, not internal functions | `go test ./cmd/cli/...` |
+| **Predictable Behavior** | All user scenarios covered by acceptance tests | Tests catch behavior changes |
+| **Error Handling Verification** | Test missing words return clear errors | No silent failures or empty results |
+
+### Quality Standards
+- **Acceptance tests solidify business contracts**, not implementation details
+- **CLI behavior changes must break tests** to ensure user contract stability
+- **Error conditions are part of the contract**, not failures to hide
+
 ## Dependencies
 
 - Go version 1.25.5 required
