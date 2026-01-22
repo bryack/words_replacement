@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -39,6 +40,15 @@ func NewSQLiteFormsProvider(dbPath string, loader DataLoader) (*SQLiteFormsProvi
 	if err != nil {
 		return nil, fmt.Errorf("failed to init db: %w", err)
 	}
+	success := false
+	defer func() {
+		if !success {
+			if closeErr := provider.Close(); closeErr != nil {
+				log.Printf("Failed to cleanup after initialization error: %v", closeErr)
+			}
+		}
+	}()
+
 	err = provider.createTable()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create table: %w", err)
@@ -53,6 +63,8 @@ func NewSQLiteFormsProvider(dbPath string, loader DataLoader) (*SQLiteFormsProvi
 			return nil, fmt.Errorf("failed to load data to db: %w", err)
 		}
 	}
+
+	success = true
 	return provider, nil
 }
 

@@ -132,3 +132,22 @@ func TestDatabasePersistence(t *testing.T) {
 
 	})
 }
+
+func TestNewSQLiteFormsProvider(t *testing.T) {
+
+	t.Run("should close DB connection if loader fails", func(t *testing.T) {
+		tempDir := t.TempDir()
+		dbPath := filepath.Join(tempDir, "testDB.db")
+		var capturedProvider *SQLiteFormsProvider
+		failingLoader := func(sfp *SQLiteFormsProvider) error {
+			capturedProvider = sfp
+			return fmt.Errorf("forced loader error")
+		}
+		provider, err := NewSQLiteFormsProvider(dbPath, failingLoader)
+		assert.Error(t, err, "expected error from NewSQLiteFormsProvider, but got nil")
+		assert.Nil(t, provider, "expected provider to be nil on error")
+
+		err = capturedProvider.db.Ping()
+		assert.Error(t, err, "expected error from Ping() after Close() - connection should be closed")
+	})
+}
